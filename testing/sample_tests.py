@@ -3,45 +3,52 @@
 import sys
 import itertools
 import unittest
-
+import os
 import mpglue as gl
 import numpy as np
 import pandas as pd
 
+# set the directory of this file as working directory
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-sample_data = 'data/samples.csv'
-clear_data = 'data/clear_observations.csv'
-weights_data = 'data/weights.csv'
+
+sample_data = "data/samples.csv"
+clear_data = "data/clear_observations.csv"
+weights_data = "data/weights.csv"
 
 clear_df = pd.read_csv(clear_data)
 weights_df = pd.read_csv(weights_data)
 
 cl = gl.classification()
 
-cl.split_samples(sample_data,
-                 perc_samp=.5,
-                 perc_samp_each=0,
-                 scale_data=False,
-                 class_subs=None,
-                 norm_struct=True,
-                 labs_type='int',
-                 recode_dict=None,
-                 classes2remove=None,
-                 sample_weight=weights_df.weights.values,
-                 ignore_feas=None,
-                 use_xy=False,
-                 stratified=False,
-                 spacing=1000.,
-                 x_label='X',
-                 y_label='Y',
-                 response_label='response',
-                 clear_observations=clear_df.clear.values,
-                 min_observations=0)
+cl.split_samples(
+    sample_data,
+    perc_samp=0.5,
+    perc_samp_each=0,
+    scale_data=False,
+    class_subs=None,
+    norm_struct=True,
+    labs_type="int",
+    recode_dict=None,
+    classes2remove=None,
+    sample_weight=weights_df.weights.values,
+    ignore_feas=None,
+    use_xy=False,
+    stratified=False,
+    spacing=1000.0,
+    x_label="X",
+    y_label="Y",
+    response_label="response",
+    clear_observations=clear_df.clear.values,
+    min_observations=0,
+)
 
 """Random Forest"""
-cl.construct_model(classifier_info={'classifier': 'AB_EX_RF', 'trials': 10, 'n_estimators': 100},
-                   output_model='data/AB_EX_RF.model',
-                   calibrate_proba=True)
+cl.construct_model(
+    classifier_info={"classifier": "rf", "trials": 10, "n_estimators": 100},
+    output_model="data/AB_EX_RF.model",
+    calibrate_proba=True,
+)
 
 """Chain CRF"""
 # cl.construct_model(classifier_info={'classifier': 'ChainCRF'})
@@ -61,7 +68,7 @@ cl.construct_model(classifier_info={'classifier': 'AB_EX_RF', 'trials': 10, 'n_e
 
 print(cl.calibrated)
 print(cl.model)
-print(cl.model.feature_importances_)
+# print(cl.model.feature_importances_)
 print(cl.XY.shape)
 print(cl.p_vars.shape)
 print(cl.labels.shape)
@@ -120,5 +127,6 @@ class TestUM(unittest.TestCase):
         self.assertEqual(cl.p_vars_test.shape[0], len(cl.labels_test))
         self.assertEqual(cl.p_vars_test.shape[0], len(cl.test_clear))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

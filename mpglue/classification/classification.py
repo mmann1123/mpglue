@@ -36,14 +36,14 @@ try:
     from ..stats import _lin_interp
 except:
 
-    logger.error('Could not import _lin_interp')
+    logger.error("Could not import _lin_interp")
     raise ImportError
 
 try:
     from ..stats import _rolling_stats
 except:
 
-    logger.error('Could not import _rolling_stats')
+    logger.error("Could not import _rolling_stats")
     raise ImportError
 
 # Pickle
@@ -59,7 +59,7 @@ try:
     import numpy as np
 except:
 
-    logger.error('NumPy must be installed')
+    logger.error("NumPy must be installed")
     raise ImportError
 
 # SciPy
@@ -70,7 +70,7 @@ try:
     from scipy.spatial import distance as sci_dist
 except:
 
-    logger.error('SciPy must be installed')
+    logger.error("SciPy must be installed")
     raise ImportError
 
 # GDAL
@@ -79,21 +79,24 @@ try:
     from osgeo.gdalconst import *
 except:
 
-    logger.error('GDAL must be installed')
+    logger.error("GDAL must be installed")
     raise ImportError
 
 # OpenCV
 try:
-   import cv2
+    import cv2
 except:
 
-    logger.error('OpenCV must be installed')
+    logger.error("OpenCV must be installed")
     raise ImportError
 
 # Scikit-learn
 try:
     from sklearn import ensemble, tree, metrics, manifold, calibration
-    from sklearn.externals import joblib
+
+    # from sklearn.externals import joblib
+    import joblib
+
     from sklearn.feature_selection import chi2, VarianceThreshold
     from sklearn.preprocessing import RobustScaler, StandardScaler
     from sklearn.neighbors import KNeighborsClassifier
@@ -103,7 +106,7 @@ try:
     from sklearn.naive_bayes import GaussianNB
     from sklearn.covariance import EllipticEnvelope
     from sklearn.cluster import KMeans
-    from sklearn.semi_supervised import label_propagation
+    from sklearn.semi_supervised import LabelPropagation as label_propagation
     from sklearn.model_selection import GridSearchCV
     from sklearn.decomposition import PCA as skPCA
     from sklearn.decomposition import IncrementalPCA
@@ -112,15 +115,15 @@ try:
     from sklearn.utils.multiclass import unique_labels
 except:
 
-    logger.error('Scikit-learn must be installed')
+    logger.error("Scikit-learn must be installed")
     raise ImportError
 
 # Matplotlib
 try:
     import matplotlib as mpl
 
-    if (os.environ.get('DISPLAY', '') == '') or (platform.system() == 'Darwin'):
-        mpl.use('Agg')
+    if (os.environ.get("DISPLAY", "") == "") or (platform.system() == "Darwin"):
+        mpl.use("Agg")
 
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
@@ -128,16 +131,17 @@ try:
     import matplotlib.ticker as ticker
 except:
 
-    logger.warning('Matplotlib must be installed')
+    logger.warning("Matplotlib must be installed")
     raise ImportWarning
 
 # pd
 try:
     import pandas as pd
+
     # import pd.rpy.common as com
 except:
 
-    logger.error('Pandas must be installed')
+    logger.error("Pandas must be installed")
     raise ImportError
 
 # retry
@@ -145,7 +149,7 @@ try:
     from retrying import retry
 except:
 
-    logger.error('retrying must be installed')
+    logger.error("retrying must be installed")
     raise ImportWarning
 
 # Pymorph
@@ -238,11 +242,11 @@ except:
     pass
 
 import warnings
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
 
 
 def _do_c5_cubist_predict(c5_cubist_model, classifier_name, predict_samps, rows_i=None):
-
     """
     A C5/Cubist prediction function
 
@@ -257,25 +261,40 @@ def _do_c5_cubist_predict(c5_cubist_model, classifier_name, predict_samps, rows_
         NumPy 1d array of class predictions
     """
 
-    if classifier_name == 'c5':
+    if classifier_name == "c5":
 
         if not rows_i:
-            return np.array(C50.predict_C5_0(c5_cubist_model, newdata=predict_samps, type='class'), dtype='int16')
+            return np.array(
+                C50.predict_C5_0(c5_cubist_model, newdata=predict_samps, type="class"),
+                dtype="int16",
+            )
         else:
-            return np.array(C50.predict_C5_0(c5_cubist_model, newdata=predict_samps.rx(rows_i, True),
-                                             type='class'), dtype='int64')
+            return np.array(
+                C50.predict_C5_0(
+                    c5_cubist_model,
+                    newdata=predict_samps.rx(rows_i, True),
+                    type="class",
+                ),
+                dtype="int64",
+            )
 
-    elif classifier_name == 'cubist':
+    elif classifier_name == "cubist":
 
         if not rows_i:
-            return np.array(Cubist.predict_cubist(c5_cubist_model, newdata=predict_samps), dtype='float32')
+            return np.array(
+                Cubist.predict_cubist(c5_cubist_model, newdata=predict_samps),
+                dtype="float32",
+            )
         else:
-            return np.array(Cubist.predict_cubist(c5_cubist_model, newdata=predict_samps.rx(rows_i, True)),
-                            dtype='float32')
+            return np.array(
+                Cubist.predict_cubist(
+                    c5_cubist_model, newdata=predict_samps.rx(rows_i, True)
+                ),
+                dtype="float32",
+            )
 
 
 def predict_c5_cubist(input_model, ip):
-
     """
     A C5/Cubist prediction function for parallel predictions
 
@@ -284,33 +303,40 @@ def predict_c5_cubist(input_model, ip):
         ip (list): A indice list of rows to extract from ``predict_samps``.
     """
 
-    with open(input_model, 'rb') as p_load:
+    with open(input_model, "rb") as p_load:
         ci, m, h = pickle.load(p_load)
 
-    rows_i = ro.IntVector(range(ip[0], ip[0]+ip[1]))
+    rows_i = ro.IntVector(range(ip[0], ip[0] + ip[1]))
 
-    if ci['classifier'] == 'c5':
+    if ci["classifier"] == "c5":
         # TODO: type='prob'
-        return np.array(C50.predict_C5_0(m, newdata=predict_samps.rx(rows_i, True), type='class'), dtype='int16')
+        return np.array(
+            C50.predict_C5_0(m, newdata=predict_samps.rx(rows_i, True), type="class"),
+            dtype="int16",
+        )
     else:
-        return np.array(Cubist.predict_cubist(m, newdata=predict_samps.rx(rows_i, True)), dtype='float32')
+        return np.array(
+            Cubist.predict_cubist(m, newdata=predict_samps.rx(rows_i, True)),
+            dtype="float32",
+        )
 
 
-def predict_scikit_probas_static(features,
-                                 mdl,
-                                 rw,
-                                 cw,
-                                 ipadded,
-                                 jpadded,
-                                 n_rows,
-                                 n_cols,
-                                 morphology,
-                                 do_not_morph,
-                                 plr_matrix,
-                                 plr_window_size,
-                                 plr_iterations,
-                                 d_type):
-
+def predict_scikit_probas_static(
+    features,
+    mdl,
+    rw,
+    cw,
+    ipadded,
+    jpadded,
+    n_rows,
+    n_cols,
+    morphology,
+    do_not_morph,
+    plr_matrix,
+    plr_window_size,
+    plr_iterations,
+    d_type,
+):
     """
     A function to get posterior probabilities from Scikit-learn models
 
@@ -350,16 +376,20 @@ def predict_scikit_probas_static(features,
     class_list = mdl.classes_
 
     # Reshape and run PLR
-    probabilities_argmax = moving_window(raster_tools.columns_to_nd(probabilities, n_classes, rw, cw),
-                                         statistic='plr',
-                                         window_size=plr_window_size,
-                                         weights=plr_matrix,
-                                         iterations=plr_iterations).argmax(axis=0)
+    probabilities_argmax = moving_window(
+        raster_tools.columns_to_nd(probabilities, n_classes, rw, cw),
+        statistic="plr",
+        window_size=plr_window_size,
+        weights=plr_matrix,
+        iterations=plr_iterations,
+    ).argmax(axis=0)
 
     if morphology:
-        predictions = np.zeros(probabilities_argmax.shape, dtype='uint8')
+        predictions = np.zeros(probabilities_argmax.shape, dtype="uint8")
     else:
-        predictions = np.zeros(probabilities_argmax.shape, dtype=raster_tools.STORAGE_DICT_NUMPY[d_type])
+        predictions = np.zeros(
+            probabilities_argmax.shape, dtype=raster_tools.STORAGE_DICT_NUMPY[d_type]
+        )
 
     # Convert indices to classes.
     for class_index, real_class in enumerate(class_list):
@@ -369,15 +399,17 @@ def predict_scikit_probas_static(features,
 
         if isinstance(do_not_morph, list):
 
-            predictions_copy = predictions[ipadded:ipadded+n_rows,
-                                           jpadded:jpadded+n_cols].copy()
+            predictions_copy = predictions[
+                ipadded : ipadded + n_rows, jpadded : jpadded + n_cols
+            ].copy()
 
-            predictions = pymorph.closerec(pymorph.closerec(predictions,
-                                                            Bdil=pymorph.secross(r=3),
-                                                            Bc=pymorph.secross(r=1)),
-                                           Bdil=pymorph.secross(r=2),
-                                           Bc=pymorph.secross(r=1))[ipadded:ipadded+n_rows,
-                                                                    jpadded:jpadded+n_cols]
+            predictions = pymorph.closerec(
+                pymorph.closerec(
+                    predictions, Bdil=pymorph.secross(r=3), Bc=pymorph.secross(r=1)
+                ),
+                Bdil=pymorph.secross(r=2),
+                Bc=pymorph.secross(r=1),
+            )[ipadded : ipadded + n_rows, jpadded : jpadded + n_cols]
 
             for do_not_morph_value in do_not_morph:
                 predictions[predictions_copy == do_not_morph_value] = do_not_morph_value
@@ -386,33 +418,35 @@ def predict_scikit_probas_static(features,
 
         else:
 
-            return pymorph.closerec(pymorph.closerec(predictions,
-                                                     Bdil=pymorph.secross(r=3),
-                                                     Bc=pymorph.secross(r=1)),
-                                    Bdil=pymorph.secross(r=2),
-                                    Bc=pymorph.secross(r=1))[ipadded:ipadded+n_rows,
-                                                             jpadded:jpadded+n_cols]
+            return pymorph.closerec(
+                pymorph.closerec(
+                    predictions, Bdil=pymorph.secross(r=3), Bc=pymorph.secross(r=1)
+                ),
+                Bdil=pymorph.secross(r=2),
+                Bc=pymorph.secross(r=1),
+            )[ipadded : ipadded + n_rows, jpadded : jpadded + n_cols]
 
     else:
-        return predictions[ipadded:ipadded+n_rows, jpadded:jpadded+n_cols]
+        return predictions[ipadded : ipadded + n_rows, jpadded : jpadded + n_cols]
 
 
-def predict_scikit_probas(rw,
-                          cw,
-                          ipadded,
-                          jpadded,
-                          n_rows,
-                          n_cols,
-                          morphology,
-                          do_not_morph,
-                          relax_probabilities,
-                          plr_matrix,
-                          plr_window_size,
-                          plr_iterations,
-                          predict_probs,
-                          d_type,
-                          null_samples):
-
+def predict_scikit_probas(
+    rw,
+    cw,
+    ipadded,
+    jpadded,
+    n_rows,
+    n_cols,
+    morphology,
+    do_not_morph,
+    relax_probabilities,
+    plr_matrix,
+    plr_window_size,
+    plr_iterations,
+    predict_probs,
+    d_type,
+    null_samples,
+):
     """
     A function to get posterior probabilities from Scikit-learn models
 
@@ -466,43 +500,52 @@ def predict_scikit_probas(rw,
 
     if relax_probabilities:
 
-        probabilities = moving_window(np.float32(probabilities),
-                                      statistic='plr',
-                                      window_size=plr_window_size,
-                                      weights=plr_matrix,
-                                      iterations=plr_iterations)
+        probabilities = moving_window(
+            np.float32(probabilities),
+            statistic="plr",
+            window_size=plr_window_size,
+            weights=plr_matrix,
+            iterations=plr_iterations,
+        )
 
     if predict_probs:
 
         # Predict class conditional probabilities.
         if relax_probabilities:
-            return probabilities[:, ipadded:ipadded+n_rows, jpadded:jpadded+n_cols]
+            return probabilities[
+                :, ipadded : ipadded + n_rows, jpadded : jpadded + n_cols
+            ]
         else:
             return probabilities
 
     probabilities = probabilities.argmax(axis=0)
 
     if morphology:
-        predictions = np.zeros(probabilities.shape, dtype='uint8')
+        predictions = np.zeros(probabilities.shape, dtype="uint8")
     else:
-        predictions = np.zeros(probabilities.shape, dtype=raster_tools.STORAGE_DICT_NUMPY[d_type])
+        predictions = np.zeros(
+            probabilities.shape, dtype=raster_tools.STORAGE_DICT_NUMPY[d_type]
+        )
 
     # Convert indices to classes.
     for class_index, real_class in enumerate(class_list):
         predictions[probabilities == class_index] = real_class
-    
+
     if morphology:
 
         if isinstance(do_not_morph, list):
 
-            predictions_copy = predictions[ipadded:ipadded+n_rows, jpadded:jpadded+n_cols].copy()
+            predictions_copy = predictions[
+                ipadded : ipadded + n_rows, jpadded : jpadded + n_cols
+            ].copy()
 
-            predictions = pymorph.closerec(pymorph.closerec(predictions,
-                                                            Bdil=pymorph.secross(r=3),
-                                                            Bc=pymorph.secross(r=1)),
-                                           Bdil=pymorph.secross(r=2),
-                                           Bc=pymorph.secross(r=1))[ipadded:ipadded+n_rows,
-                                                                    jpadded:jpadded+n_cols]
+            predictions = pymorph.closerec(
+                pymorph.closerec(
+                    predictions, Bdil=pymorph.secross(r=3), Bc=pymorph.secross(r=1)
+                ),
+                Bdil=pymorph.secross(r=2),
+                Bc=pymorph.secross(r=1),
+            )[ipadded : ipadded + n_rows, jpadded : jpadded + n_cols]
 
             for do_not_morph_value in do_not_morph:
                 predictions[predictions_copy == do_not_morph_value] = do_not_morph_value
@@ -511,19 +554,19 @@ def predict_scikit_probas(rw,
 
         else:
 
-            return pymorph.closerec(pymorph.closerec(predictions,
-                                                     Bdil=pymorph.secross(r=3),
-                                                     Bc=pymorph.secross(r=1)),
-                                    Bdil=pymorph.secross(r=2),
-                                    Bc=pymorph.secross(r=1))[ipadded:ipadded+n_rows,
-                                                             jpadded:jpadded+n_cols]
+            return pymorph.closerec(
+                pymorph.closerec(
+                    predictions, Bdil=pymorph.secross(r=3), Bc=pymorph.secross(r=1)
+                ),
+                Bdil=pymorph.secross(r=2),
+                Bc=pymorph.secross(r=1),
+            )[ipadded : ipadded + n_rows, jpadded : jpadded + n_cols]
 
     else:
-        return predictions[ipadded:ipadded+n_rows, jpadded:jpadded+n_cols]
+        return predictions[ipadded : ipadded + n_rows, jpadded : jpadded + n_cols]
 
 
 def predict_scikit(pool_iter):
-
     """
     A function to predict in parallel from Scikit-learn models
 
@@ -533,11 +576,10 @@ def predict_scikit(pool_iter):
 
     ip_ = indice_pairs[pool_iter]
 
-    return mdl.predict(features[ip_[0]:ip_[0]+ip_[1]])
+    return mdl.predict(features[ip_[0] : ip_[0] + ip_[1]])
 
 
 def predict_cv(ci, cs, fn, pc, cr, ig, xy, cinfo, wc):
-
     """
     This is an ugly (and hopefully temporary) hack to get around the missing OpenCV model ``load`` method.
     """
@@ -546,218 +588,536 @@ def predict_cv(ci, cs, fn, pc, cr, ig, xy, cinfo, wc):
     cl.split_samples(fn, perc_samp=pc, classes2remove=cr, ignore_feas=ig, use_xy=xy)
     cl.construct_model(classifier_info=cinfo, class_weight=wc, be_quiet=True)
 
-    return cl.model.predict(features[ci:ci+cs])[1]
+    return cl.model.predict(features[ci : ci + cs])[1]
 
 
 def get_available_models():
-
     """Gets a list of available models"""
 
-    return ['ab-dt', 'ab-ex-dt', 'ab-rf', 'ab-ex-rf', 'ab-dtr', 'ab-ex-dtr',
-            'ab-rfr', 'ab-ex-rfr',
-            'bag-dt', 'bag-ex-dt', 'bag-dtr', 'blag', 'blaf', 'blab', 'bayes', 'dt', 'dtr',
-            'ex-dt', 'ex-dtr', 'gb', 'gbr', 'c5', 'cubist',
-            'ex-rf', 'ex-rfr',
-            'logistic', 'nn', 'gaussian',
-            'rf', 'cvrf', 'rfr', 'cvmlp',
-            'svmc', 'svmnu', 'svmcr', 'cvsvm', 'cvsvma', 'cvsvr', 'cvsvra', 'qda',
-            'chaincrf', 'gridcrf',
-            'lightgbm', 'tpot', 'mondrian', 'catboost', 'xgboost']
+    return [
+        "ab-dt",
+        "ab-ex-dt",
+        "ab-rf",
+        "ab-ex-rf",
+        "ab-dtr",
+        "ab-ex-dtr",
+        "ab-rfr",
+        "ab-ex-rfr",
+        "bag-dt",
+        "bag-ex-dt",
+        "bag-dtr",
+        "blag",
+        "blaf",
+        "blab",
+        "bayes",
+        "dt",
+        "dtr",
+        "ex-dt",
+        "ex-dtr",
+        "gb",
+        "gbr",
+        "c5",
+        "cubist",
+        "ex-rf",
+        "ex-rfr",
+        "logistic",
+        "nn",
+        "gaussian",
+        "rf",
+        "cvrf",
+        "rfr",
+        "cvmlp",
+        "svmc",
+        "svmnu",
+        "svmcr",
+        "cvsvm",
+        "cvsvma",
+        "cvsvr",
+        "cvsvra",
+        "qda",
+        "chaincrf",
+        "gridcrf",
+        "lightgbm",
+        "tpot",
+        "mondrian",
+        "catboost",
+        "xgboost",
+    ]
 
 
 class ParameterHandler(object):
 
     def __init__(self, classifier):
 
-        self.equal_params = dict(trees='n_estimators',
-                                 min_samps='min_samples_split')
+        self.equal_params = dict(trees="n_estimators", min_samps="min_samples_split")
 
-        self.forests = ['rf',
-                        'ex-rf']
+        self.forests = ["rf", "ex-rf"]
 
-        self.forests_regressed = ['rfr',
-                                  'ex-rfr']
+        self.forests_regressed = ["rfr", "ex-rfr"]
 
-        self.bagged = ['bag-dt',
-                       'bag-ex-dt',
-                       'bag-dtr']
+        self.bagged = ["bag-dt", "bag-ex-dt", "bag-dtr"]
 
-        self.bagged_imbalanced = ['blag']
-        self.forest_imbalanced = ['blaf']
-        self.boost_imbalanced = ['blab']
+        self.bagged_imbalanced = ["blag"]
+        self.forest_imbalanced = ["blaf"]
+        self.boost_imbalanced = ["blab"]
 
-        self.trees = ['dt',
-                      'ex-dt']
+        self.trees = ["dt", "ex-dt"]
 
-        self.trees_regressed = ['dtr',
-                                'ex-dtr']
+        self.trees_regressed = ["dtr", "ex-dtr"]
 
-        self.boosted = ['ab-dt',
-                        'ab-ex-dt',
-                        'ab-rf',
-                        'ab-ex-rf']
+        self.boosted = ["ab-dt", "ab-ex-dt", "ab-rf", "ab-ex-rf"]
 
-        self.boosted_g = ['gb']
+        self.boosted_g = ["gb"]
 
-        self.boosted_g_regressed = ['gbr']
+        self.boosted_g_regressed = ["gbr"]
 
         if classifier in self.forests:
 
-            self.valid_params = ['n_estimators', 'criterion', 'max_depth', 'min_samples_split',
-                                 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features',
-                                 'max_leaf_nodes', 'bootstrap', 'oob_score', 'n_jobs',
-                                 'random_state', 'verbose', 'warm_start', 'class_weight']
+            self.valid_params = [
+                "n_estimators",
+                "criterion",
+                "max_depth",
+                "min_samples_split",
+                "min_samples_leaf",
+                "min_weight_fraction_leaf",
+                "max_features",
+                "max_leaf_nodes",
+                "bootstrap",
+                "oob_score",
+                "n_jobs",
+                "random_state",
+                "verbose",
+                "warm_start",
+                "class_weight",
+            ]
 
         elif classifier in self.forests_regressed:
 
-            self.valid_params = ['n_estimators', 'criterion', 'max_depth', 'min_samples_split',
-                                 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features',
-                                 'max_leaf_nodes', 'bootstrap', 'oob_score', 'n_jobs',
-                                 'random_state', 'verbose', 'warm_start']
+            self.valid_params = [
+                "n_estimators",
+                "criterion",
+                "max_depth",
+                "min_samples_split",
+                "min_samples_leaf",
+                "min_weight_fraction_leaf",
+                "max_features",
+                "max_leaf_nodes",
+                "bootstrap",
+                "oob_score",
+                "n_jobs",
+                "random_state",
+                "verbose",
+                "warm_start",
+            ]
 
         elif classifier in self.bagged:
 
-            self.valid_params = ['base_estimator', 'n_estimators', 'max_samples', 'max_features',
-                                 'bootstrap', 'bootstrap_features', 'oob_score', 'warm_start',
-                                 'n_jobs', 'random_state', 'verbose']
+            self.valid_params = [
+                "base_estimator",
+                "n_estimators",
+                "max_samples",
+                "max_features",
+                "bootstrap",
+                "bootstrap_features",
+                "oob_score",
+                "warm_start",
+                "n_jobs",
+                "random_state",
+                "verbose",
+            ]
 
         elif classifier in self.bagged_imbalanced:
 
-            self.valid_params = ['base_estimator', 'n_estimators', 'max_samples', 'max_features',
-                                 'bootstrap', 'bootstrap_features', 'oob_score', 'warm_start',
-                                 'ratio', 'replacement',
-                                 'n_jobs', 'random_state', 'verbose']
+            self.valid_params = [
+                "base_estimator",
+                "n_estimators",
+                "max_samples",
+                "max_features",
+                "bootstrap",
+                "bootstrap_features",
+                "oob_score",
+                "warm_start",
+                "ratio",
+                "replacement",
+                "n_jobs",
+                "random_state",
+                "verbose",
+            ]
 
         elif classifier in self.forest_imbalanced:
 
-            self.valid_params = ['n_estimators', 'criterion', 'max_depth', 'min_samples_split', 'min_samples_leaf',
-                                 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes',
-                                 'min_impurity_decrease', 'bootstrap', 'oob_score', 'replacement',
-                                 'n_jobs', 'verbose', 'warm_start', 'class_weight']
+            self.valid_params = [
+                "n_estimators",
+                "criterion",
+                "max_depth",
+                "min_samples_split",
+                "min_samples_leaf",
+                "min_weight_fraction_leaf",
+                "max_features",
+                "max_leaf_nodes",
+                "min_impurity_decrease",
+                "bootstrap",
+                "oob_score",
+                "replacement",
+                "n_jobs",
+                "verbose",
+                "warm_start",
+                "class_weight",
+            ]
 
         elif classifier in self.boost_imbalanced:
 
-            self.valid_params = ['base_estimator', 'n_estimators', 'learning_rate', 'algorithm',
-                                 'sampling_strategy', 'replacement', 'random_state']
+            self.valid_params = [
+                "base_estimator",
+                "n_estimators",
+                "learning_rate",
+                "algorithm",
+                "sampling_strategy",
+                "replacement",
+                "random_state",
+            ]
 
         elif classifier in self.trees:
 
-            self.valid_params = ['criterion', 'splitter', 'max_depth', 'min_samples_split',
-                                 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features',
-                                 'random_state', 'max_leaf_nodes', 'class_weight', 'presort']
+            self.valid_params = [
+                "criterion",
+                "splitter",
+                "max_depth",
+                "min_samples_split",
+                "min_samples_leaf",
+                "min_weight_fraction_leaf",
+                "max_features",
+                "random_state",
+                "max_leaf_nodes",
+                "class_weight",
+                "presort",
+            ]
 
         elif classifier in self.trees_regressed:
 
-            self.valid_params = ['criterion', 'splitter', 'max_depth', 'min_samples_split', 'min_samples_leaf',
-                                 'min_weight_fraction_leaf', 'max_features', 'random_state', 'max_leaf_nodes',
-                                 'presort']
+            self.valid_params = [
+                "criterion",
+                "splitter",
+                "max_depth",
+                "min_samples_split",
+                "min_samples_leaf",
+                "min_weight_fraction_leaf",
+                "max_features",
+                "random_state",
+                "max_leaf_nodes",
+                "presort",
+            ]
 
         elif classifier in self.boosted_g:
 
-            self.valid_params = ['loss', 'learning_rate', 'n_estimators', 'subsample', 'min_samples_split',
-                                 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_depth', 'init',
-                                 'random_state', 'max_features', 'verbose', 'max_leaf_nodes', 'warm_start',
-                                 'presort']
+            self.valid_params = [
+                "loss",
+                "learning_rate",
+                "n_estimators",
+                "subsample",
+                "min_samples_split",
+                "min_samples_leaf",
+                "min_weight_fraction_leaf",
+                "max_depth",
+                "init",
+                "random_state",
+                "max_features",
+                "verbose",
+                "max_leaf_nodes",
+                "warm_start",
+                "presort",
+            ]
 
         elif classifier in self.boosted_g_regressed:
 
-            self.valid_params = ['loss', 'learning_rate', 'n_estimators', 'subsample', 'min_samples_split',
-                                 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_depth', 'init',
-                                 'random_state', 'max_features', 'alpha', 'verbose', 'max_leaf_nodes',
-                                 'warm_start', 'presort']
+            self.valid_params = [
+                "loss",
+                "learning_rate",
+                "n_estimators",
+                "subsample",
+                "min_samples_split",
+                "min_samples_leaf",
+                "min_weight_fraction_leaf",
+                "max_depth",
+                "init",
+                "random_state",
+                "max_features",
+                "alpha",
+                "verbose",
+                "max_leaf_nodes",
+                "warm_start",
+                "presort",
+            ]
 
         elif classifier in self.boosted:
-            self.valid_params = ['base_estimator', 'n_estimators', 'learning_rate', 'algorithm', 'random_state']
+            self.valid_params = [
+                "base_estimator",
+                "n_estimators",
+                "learning_rate",
+                "algorithm",
+                "random_state",
+            ]
 
-        elif classifier == 'bayes':
+        elif classifier == "bayes":
 
-            self.valid_params = ['priors']
+            self.valid_params = ["priors"]
 
-        elif classifier == 'nn':
+        elif classifier == "nn":
 
-            self.valid_params = ['n_neighbors', 'weights', 'algorithm', 'leaf_size', 'p', 'metric',
-                                 'metric_params', 'n_jobs']
+            self.valid_params = [
+                "n_neighbors",
+                "weights",
+                "algorithm",
+                "leaf_size",
+                "p",
+                "metric",
+                "metric_params",
+                "n_jobs",
+            ]
 
-        elif classifier == 'logistic':
+        elif classifier == "logistic":
 
-            self.valid_params = ['penalty', 'dual', 'tol', 'C', 'fit_intercept', 'intercept_scaling',
-                                 'class_weight', 'random_state', 'solver', 'max_iter', 'multi_class',
-                                 'verbose', 'warm_start', 'n_jobs']
+            self.valid_params = [
+                "penalty",
+                "dual",
+                "tol",
+                "C",
+                "fit_intercept",
+                "intercept_scaling",
+                "class_weight",
+                "random_state",
+                "solver",
+                "max_iter",
+                "multi_class",
+                "verbose",
+                "warm_start",
+                "n_jobs",
+            ]
 
-        elif classifier == 'qda':
+        elif classifier == "qda":
 
-            self.valid_params = ['priors', 'reg_param', 'store_covariance', 'tol', 'store_covariances']
+            self.valid_params = [
+                "priors",
+                "reg_param",
+                "store_covariance",
+                "tol",
+                "store_covariances",
+            ]
 
-        elif classifier == 'gaussian':
+        elif classifier == "gaussian":
 
-            self.valid_params = ['kernel', 'optimizer', 'n_restarts_optimizer', 'max_iter_predict',
-                                 'warm_start', 'copy_X_train', 'random_state', 'multi_class', 'n_jobs']
+            self.valid_params = [
+                "kernel",
+                "optimizer",
+                "n_restarts_optimizer",
+                "max_iter_predict",
+                "warm_start",
+                "copy_X_train",
+                "random_state",
+                "multi_class",
+                "n_jobs",
+            ]
 
-        elif classifier == 'svmc':
+        elif classifier == "svmc":
 
-            self.valid_params = ['C', 'kernel', 'degree', 'gamma', 'coef0', 'shrinking', 'probability',
-                                 'tol', 'cache_size', 'class_weight', 'verbose', 'max_iter',
-                                 'decision_function_shape', 'random_state']
+            self.valid_params = [
+                "C",
+                "kernel",
+                "degree",
+                "gamma",
+                "coef0",
+                "shrinking",
+                "probability",
+                "tol",
+                "cache_size",
+                "class_weight",
+                "verbose",
+                "max_iter",
+                "decision_function_shape",
+                "random_state",
+            ]
 
-        elif classifier == 'svmnu':
+        elif classifier == "svmnu":
 
-            self.valid_params = ['nu', 'kernel', 'degree', 'gamma', 'coef0', 'shrinking', 'probability',
-                                 'tol', 'cache_size', 'class_weight', 'verbose', 'max_iter',
-                                 'decision_function_shape', 'random_state']
+            self.valid_params = [
+                "nu",
+                "kernel",
+                "degree",
+                "gamma",
+                "coef0",
+                "shrinking",
+                "probability",
+                "tol",
+                "cache_size",
+                "class_weight",
+                "verbose",
+                "max_iter",
+                "decision_function_shape",
+                "random_state",
+            ]
 
-        elif classifier in ['chaincrf', 'gridcrf']:
+        elif classifier in ["chaincrf", "gridcrf"]:
 
-            self.valid_params = ['max_iter', 'C', 'n_jobs', 'show_loss_every',
-                                 'tol', 'inference_cache',
-                                 'inference_method',
-                                 'neighborhood']
+            self.valid_params = [
+                "max_iter",
+                "C",
+                "n_jobs",
+                "show_loss_every",
+                "tol",
+                "inference_cache",
+                "inference_method",
+                "neighborhood",
+            ]
 
-        elif classifier == 'lightgbm':
+        elif classifier == "lightgbm":
 
-            self.valid_params = ['boosting_type', 'num_leaves', 'max_depth', 'learning_rate', 'n_estimators',
-                                 'subsample_for_bin', 'objective', 'class_weight', 'min_split_gain',
-                                 'min_child_weight', 'min_child_samples', 'subsample', 'subsample_freq',
-                                 'colsample_bytree', 'reg_alpha', 'reg_lambda', 'random_state', 'n_jobs', 'silent',
-                                 'feature_fraction', 'bagging_freq', 'bagging_fraction', 'max_bin', 'num_boost_round']
+            self.valid_params = [
+                "boosting_type",
+                "num_leaves",
+                "max_depth",
+                "learning_rate",
+                "n_estimators",
+                "subsample_for_bin",
+                "objective",
+                "class_weight",
+                "min_split_gain",
+                "min_child_weight",
+                "min_child_samples",
+                "subsample",
+                "subsample_freq",
+                "colsample_bytree",
+                "reg_alpha",
+                "reg_lambda",
+                "random_state",
+                "n_jobs",
+                "silent",
+                "feature_fraction",
+                "bagging_freq",
+                "bagging_fraction",
+                "max_bin",
+                "num_boost_round",
+            ]
 
-        elif classifier == 'catboost':
+        elif classifier == "catboost":
 
-            self.valid_params = ['iterations', 'learning_rate', 'depth', 'l2_leaf_reg', 'model_size_reg',
-                                 'rsm', 'loss_function', 'border_count', 'feature_border_type',
-                                 'fold_permutation_block_size', 'od_pval', 'od_wait', 'od_type',
-                                 'nan_mode', 'counter_calc_method', 'leaf_estimation_iterations',
-                                 'leaf_estimation_method', 'thread_count', 'random_seed',
-                                 'use_best_model', 'best_model_min_trees', 'verbose', 'silent',
-                                 'logging_level', 'metric_period', 'simple_ctr', 'combinations_ctr',
-                                 'per_feature_ctr', 'ctr_leaf_count_limit', 'store_all_simple_ctr',
-                                 'max_ctr_complexity', 'has_time', 'allow_const_label', 'classes_count',
-                                 'class_weights', 'one_hot_max_size', 'random_strength', 'name',
-                                 'ignored_features', 'train_dir', 'custom_metric', 'custom_loss', 'eval_metric',
-                                 'bagging_temperature', 'save_snapshot', 'snapshot_file', 'snapshot_interval',
-                                 'fold_len_multiplier', 'used_ram_limit', 'gpu_ram_part', 'pinned_memory_size',
-                                 'allow_writing_files', 'final_ctr_computation_mode', 'approx_on_full_history',
-                                 'boosting_type', 'task_type', 'device_config', 'devices', 'bootstrap_type',
-                                 'subsample', 'dev_score_calc_obj_block_size', 'max_depth', 'n_estimators',
-                                 'num_trees', 'num_boost_round', 'colsample_bylevel', 'random_state',
-                                 'reg_lambda', 'objective', 'eta', 'max_bin', 'scale_pos_weight', 'metadata',
-                                 'early_stopping_rounds', 'cat_features']
+            self.valid_params = [
+                "iterations",
+                "learning_rate",
+                "depth",
+                "l2_leaf_reg",
+                "model_size_reg",
+                "rsm",
+                "loss_function",
+                "border_count",
+                "feature_border_type",
+                "fold_permutation_block_size",
+                "od_pval",
+                "od_wait",
+                "od_type",
+                "nan_mode",
+                "counter_calc_method",
+                "leaf_estimation_iterations",
+                "leaf_estimation_method",
+                "thread_count",
+                "random_seed",
+                "use_best_model",
+                "best_model_min_trees",
+                "verbose",
+                "silent",
+                "logging_level",
+                "metric_period",
+                "simple_ctr",
+                "combinations_ctr",
+                "per_feature_ctr",
+                "ctr_leaf_count_limit",
+                "store_all_simple_ctr",
+                "max_ctr_complexity",
+                "has_time",
+                "allow_const_label",
+                "classes_count",
+                "class_weights",
+                "one_hot_max_size",
+                "random_strength",
+                "name",
+                "ignored_features",
+                "train_dir",
+                "custom_metric",
+                "custom_loss",
+                "eval_metric",
+                "bagging_temperature",
+                "save_snapshot",
+                "snapshot_file",
+                "snapshot_interval",
+                "fold_len_multiplier",
+                "used_ram_limit",
+                "gpu_ram_part",
+                "pinned_memory_size",
+                "allow_writing_files",
+                "final_ctr_computation_mode",
+                "approx_on_full_history",
+                "boosting_type",
+                "task_type",
+                "device_config",
+                "devices",
+                "bootstrap_type",
+                "subsample",
+                "dev_score_calc_obj_block_size",
+                "max_depth",
+                "n_estimators",
+                "num_trees",
+                "num_boost_round",
+                "colsample_bylevel",
+                "random_state",
+                "reg_lambda",
+                "objective",
+                "eta",
+                "max_bin",
+                "scale_pos_weight",
+                "metadata",
+                "early_stopping_rounds",
+                "cat_features",
+            ]
 
-        elif classifier == 'xgboost':
+        elif classifier == "xgboost":
 
-            self.valid_params = ['max_depth', 'learning_rate', 'n_estimators', 'silent',
-                                 'objective', 'booster', 'n_jobs', 'nthread', 'gamma',
-                                 'min_child_weight', 'max_delta_step', 'subsample', 'colsample_bytree',
-                                 'colsample_bylevel', 'reg_alpha', 'reg_lambda', 'scale_pos_weight',
-                                 'base_score', 'random_state', 'seed', 'missing']
+            self.valid_params = [
+                "max_depth",
+                "learning_rate",
+                "n_estimators",
+                "silent",
+                "objective",
+                "booster",
+                "n_jobs",
+                "nthread",
+                "gamma",
+                "min_child_weight",
+                "max_delta_step",
+                "subsample",
+                "colsample_bytree",
+                "colsample_bylevel",
+                "reg_alpha",
+                "reg_lambda",
+                "scale_pos_weight",
+                "base_score",
+                "random_state",
+                "seed",
+                "missing",
+            ]
 
-        elif classifier == 'mondrian':
-            self.valid_params = ['n_estimators', 'max_depth', 'min_samples_split', 'random_state', 'n_jobs']
+        elif classifier == "mondrian":
+            self.valid_params = [
+                "n_estimators",
+                "max_depth",
+                "min_samples_split",
+                "random_state",
+                "n_jobs",
+            ]
 
-        elif classifier == 'tpot':
+        elif classifier == "tpot":
             self.valid_params = list()
 
         else:
-            logger.warning('  The classifier is not supported.')
+            logger.warning("  The classifier is not supported.")
 
     def check_parameters(self, cinfo, default_params, trials_set=False):
 
@@ -771,7 +1131,7 @@ class ParameterHandler(object):
 
             if param_key in self.equal_params:
 
-                if param_key == 'trials':
+                if param_key == "trials":
 
                     if not trials_set:
 
@@ -793,29 +1153,25 @@ class ParameterHandler(object):
 
 
 class PickleIt(object):
-
     """A class for pickling objects"""
 
     @staticmethod
     def dump(data2dump, output_file):
 
-        with open(output_file, 'wb') as p_dump:
+        with open(output_file, "wb") as p_dump:
 
-            pickle.dump(data2dump,
-                        p_dump,
-                        protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(data2dump, p_dump, protocol=pickle.HIGHEST_PROTOCOL)
 
     @staticmethod
     def load(input_file):
 
-        with open(input_file, 'rb') as p_load:
+        with open(input_file, "rb") as p_load:
             loaded_data = pickle.load(p_load)
 
         return loaded_data
 
 
 class Samples(object):
-
     """
     A class to handle data samples
 
@@ -848,32 +1204,33 @@ class Samples(object):
     def __init__(self):
         self.time_stamp = time.asctime(time.localtime(time.time()))
 
-    def split_samples(self,
-                      file_name,
-                      perc_samp=1.0,
-                      perc_samp_each=0.5,
-                      scale_data=False,
-                      class_subs=None,
-                      norm_struct=True,
-                      labs_type='int',
-                      recode_dict=None,
-                      vs_all=None,
-                      classes2remove=None,
-                      sample_weight=None,
-                      ignore_feas=None,
-                      use_xy=False,
-                      stratified=False,
-                      spacing=1000.0,
-                      x_label='X',
-                      y_label='Y',
-                      response_label='response',
-                      clear_observations=None,
-                      min_observations=10,
-                      limit_test_size=None):
-
+    def split_samples(
+        self,
+        file_name,
+        perc_samp=1.0,
+        perc_samp_each=0.5,
+        scale_data=False,
+        class_subs=None,
+        norm_struct=True,
+        labs_type="int",
+        recode_dict=None,
+        vs_all=None,
+        classes2remove=None,
+        sample_weight=None,
+        ignore_feas=None,
+        use_xy=False,
+        stratified=False,
+        spacing=1000.0,
+        x_label="X",
+        y_label="Y",
+        response_label="response",
+        clear_observations=None,
+        min_observations=10,
+        limit_test_size=None,
+    ):
         """
         Split samples for training and testing.
-        
+
         Args:
             file_name (str or 2d array or DataFrame): Input text file, 2d array, or Pandas DataFrame
                 with samples and labels.
@@ -889,7 +1246,7 @@ class Samples(object):
                 Example:
                     Sample by percentage = {1:.9, 2:.9, 3:.5}
                     Sample by integer = {1:300, 2:300, 3:150}
-            norm_struct (Optional[bool]): Whether the structure of the data is normal. Default is True. 
+            norm_struct (Optional[bool]): Whether the structure of the data is normal. Default is True.
                 In the case of MpGlue, normal is (X,Y,Var1,Var2,Var3,Var4,...,VarN,Labels),
                 whereas the alternative (i.e., False) is (Labels,Var1,Var2,Var3,Var4,...,VarN)
             labs_type (Optional[str]): Read class labels as integer ('int') or float ('float'). Default is 'int'.
@@ -958,7 +1315,7 @@ class Samples(object):
         # Open the data samples.
         if isinstance(self.file_name, str):
 
-            self.df = pd.read_csv(self.file_name, sep=',')
+            self.df = pd.read_csv(self.file_name, sep=",")
 
         elif isinstance(self.file_name, pd.DataFrame):
 
@@ -968,10 +1325,14 @@ class Samples(object):
 
             if len(self.file_name.shape) != 2:
 
-                logger.error('  The samples array must be a 2d array.')
+                logger.error("  The samples array must be a 2d array.")
                 raise TypeError
 
-            headers = [x_label, y_label] + list(map(str, range(1, self.file_name.shape[1]-2))) + [self.response_label]
+            headers = (
+                [x_label, y_label]
+                + list(map(str, range(1, self.file_name.shape[1] - 2)))
+                + [self.response_label]
+            )
 
             self.df = pd.DataFrame(self.file_name, columns=headers)
 
@@ -979,7 +1340,7 @@ class Samples(object):
 
         else:
 
-            logger.error('  The samples file must be a text file or a 2d array.')
+            logger.error("  The samples file must be a text file or a 2d array.")
             raise TypeError
 
         # Parse the headers.
@@ -989,14 +1350,14 @@ class Samples(object):
 
             data_position = 2
 
-            self.headers = self.headers[self.headers.index(x_label):]
+            self.headers = self.headers[self.headers.index(x_label) :]
 
             # The response index position.
             self.label_idx = -1
 
         else:
 
-            self.headers = self.headers[self.headers.index(self.response_label):]
+            self.headers = self.headers[self.headers.index(self.response_label) :]
 
             # The response index position.
             self.label_idx = 0
@@ -1006,13 +1367,15 @@ class Samples(object):
         # Parse the x variables.
         self.all_samps = self.df.loc[:, self.headers[data_position:]].values
 
-        if isinstance(clear_observations, np.ndarray) or isinstance(clear_observations, list):
+        if isinstance(clear_observations, np.ndarray) or isinstance(
+            clear_observations, list
+        ):
 
-            clear_observations = np.array(clear_observations, dtype='uint64').ravel()
+            clear_observations = np.array(clear_observations, dtype="uint64").ravel()
 
             if self.all_samps.shape[0] != len(clear_observations):
 
-                logger.error('  The clear observation and sample lengths do no match.')
+                logger.error("  The clear observation and sample lengths do no match.")
                 raise AssertionError
 
         # ---------------------------
@@ -1021,17 +1384,21 @@ class Samples(object):
         # Remove specified x variables.
         if ignore_feas:
 
-            ignore_feas = np.array(sorted([int(f-1) for f in ignore_feas]), dtype='int64')
+            ignore_feas = np.array(
+                sorted([int(f - 1) for f in ignore_feas]), dtype="int64"
+            )
 
             self.all_samps = np.delete(self.all_samps, ignore_feas, axis=1)
-            self.df.drop(self.df.columns[ignore_feas+2], inplace=True, axis=1)
+            self.df.drop(self.df.columns[ignore_feas + 2], inplace=True, axis=1)
 
             self.headers = self.df.columns.tolist()
 
         if self.use_xy:
 
             # Reorder the variables and x, y coordinates.
-            self.df = self.df[self.headers[2:-1] + self.headers[:2] + [self.headers[-1]]]
+            self.df = self.df[
+                self.headers[2:-1] + self.headers[:2] + [self.headers[-1]]
+            ]
             self.all_samps = self.df.values
 
             self.headers = self.df.columns.tolist()
@@ -1042,14 +1409,16 @@ class Samples(object):
             self.headers = self.headers[2:]
 
         if isinstance(self.sample_weight, list) and len(self.sample_weight) > 0:
-            self.sample_weight = np.array(self.sample_weight, dtype='float32')
+            self.sample_weight = np.array(self.sample_weight, dtype="float32")
 
         # ----------------------------------
         # Potential change in array ROW size
         # ----------------------------------
         # Remove unwanted classes.
         if self.classes2remove:
-            clear_observations = self._remove_classes(self.classes2remove, clear_observations)
+            clear_observations = self._remove_classes(
+                self.classes2remove, clear_observations
+            )
 
         # ----------------------------------
         # Potential change in array ROW size
@@ -1109,16 +1478,24 @@ class Samples(object):
                 else:
                     self._sample_group(class_key, cl)
 
-            self.train_idx = np.array(sorted(self.train_idx), dtype='int64')
-            self.test_idx = np.array(sorted(list(set(self.df.index.tolist()).difference(self.train_idx))), dtype='int64')
+            self.train_idx = np.array(sorted(self.train_idx), dtype="int64")
+            self.test_idx = np.array(
+                sorted(list(set(self.df.index.tolist()).difference(self.train_idx))),
+                dtype="int64",
+            )
 
             if isinstance(self.limit_test_size, int):
 
                 if len(self.test_idx) > self.limit_test_size:
 
-                    self.test_idx = np.array(sorted(np.random.choice(self.test_idx,
-                                                                     size=self.limit_test_size,
-                                                                     replace=False)), dtype='int64')
+                    self.test_idx = np.array(
+                        sorted(
+                            np.random.choice(
+                                self.test_idx, size=self.limit_test_size, replace=False
+                            )
+                        ),
+                        dtype="int64",
+                    )
 
             test_samps = self.all_samps[self.test_idx]
             self.all_samps = self.all_samps[self.train_idx]
@@ -1136,8 +1513,10 @@ class Samples(object):
                 self.sample_weight_test = self.sample_weight[self.test_idx]
                 self.sample_weight = self.sample_weight[self.train_idx]
 
-        elif ((isinstance(perc_samp, float) and (perc_samp < 1)) or (isinstance(perc_samp, int) and (perc_samp > 0))) \
-                and (perc_samp_each == 0):
+        elif (
+            (isinstance(perc_samp, float) and (perc_samp < 1))
+            or (isinstance(perc_samp, int) and (perc_samp > 0))
+        ) and (perc_samp_each == 0):
 
             if stratified:
 
@@ -1146,7 +1525,9 @@ class Samples(object):
 
                 # We need x, y coordinates, so force it.
                 if not self.use_xy:
-                    self.all_samps = np.c_[self.all_samps[:, :-1], self.XY, self.all_samps[:, -1]]
+                    self.all_samps = np.c_[
+                        self.all_samps[:, :-1], self.XY, self.all_samps[:, -1]
+                    ]
 
                 # while n_match_samps < n_total_samps:
                 #     n_match_samps = self._stratify(y_grids, x_grids, n_match_samps, n_total_samps)
@@ -1156,8 +1537,15 @@ class Samples(object):
 
             else:
 
-                test_samps, self.all_samps, test_clear, train_clear, self.sample_weight = \
-                    self.get_test_train(self.all_samps, perc_samp, self.sample_weight, clear_observations)
+                (
+                    test_samps,
+                    self.all_samps,
+                    test_clear,
+                    train_clear,
+                    self.sample_weight,
+                ) = self.get_test_train(
+                    self.all_samps, perc_samp, self.sample_weight, clear_observations
+                )
 
                 n_samples = self.all_samps.shape[0]
 
@@ -1180,38 +1568,50 @@ class Samples(object):
         self.n_samps = self.all_samps.shape[0]
 
         # Get class labels.
-        if labs_type == 'int':
-            self.labels = np.array(self.all_samps[:, self.label_idx].ravel(), dtype='int64')
-        elif labs_type == 'float':
-            self.labels = np.array(self.all_samps[:, self.label_idx].ravel(), dtype='float32')
+        if labs_type == "int":
+            self.labels = np.array(
+                self.all_samps[:, self.label_idx].ravel(), dtype="int64"
+            )
+        elif labs_type == "float":
+            self.labels = np.array(
+                self.all_samps[:, self.label_idx].ravel(), dtype="float32"
+            )
         else:
 
-            logger.error('  `labs_type` should be int or float')
+            logger.error("  `labs_type` should be int or float")
             raise TypeError
 
         if norm_struct:
-            self.p_vars = np.float32(self.all_samps[:, :self.label_idx])
+            self.p_vars = np.float32(self.all_samps[:, : self.label_idx])
         else:
             self.p_vars = np.float32(self.all_samps[:, 1:])
 
-        self.p_vars[np.isnan(self.p_vars) | np.isinf(self.p_vars)] = 0.
+        self.p_vars[np.isnan(self.p_vars) | np.isinf(self.p_vars)] = 0.0
 
-        if self.class_subs or (0 < perc_samp_each < 1) or ((perc_samp < 1) and (perc_samp_each == 0)):
+        if (
+            self.class_subs
+            or (0 < perc_samp_each < 1)
+            or ((perc_samp < 1) and (perc_samp_each == 0))
+        ):
 
             # Get class labels.
-            dtype_ = 'float32' if labs_type == 'float32' else 'int64'
+            dtype_ = "float32" if labs_type == "float32" else "int64"
 
             if norm_struct:
 
-                self.labels_test = np.array(test_samps[:, self.label_idx].ravel(), dtype=dtype_)
-                self.p_vars_test = np.float32(test_samps[:, :self.label_idx])
+                self.labels_test = np.array(
+                    test_samps[:, self.label_idx].ravel(), dtype=dtype_
+                )
+                self.p_vars_test = np.float32(test_samps[:, : self.label_idx])
 
             else:
 
                 self.labels_test = np.array(test_samps[:, 1:].ravel(), dtype=dtype_)
                 self.p_vars_test = np.float32(test_samps[:, 1:])
 
-            self.p_vars_test[np.isnan(self.p_vars_test) | np.isinf(self.p_vars_test)] = 0.
+            self.p_vars_test[
+                np.isnan(self.p_vars_test) | np.isinf(self.p_vars_test)
+            ] = 0.0
 
             self.p_vars_test_rows = self.p_vars_test.shape[0]
             self.p_vars_test_cols = self.p_vars_test.shape[1]
@@ -1226,15 +1626,15 @@ class Samples(object):
             self.scaler = None
             self.scaled = False
 
-        self.update_sample_info(scaler=self.scaler,
-                                scaled=self.scaled,
-                                use_xy=self.use_xy)
+        self.update_sample_info(
+            scaler=self.scaler, scaled=self.scaled, use_xy=self.use_xy
+        )
 
     def update_sample_info(self, **kwargs):
 
-        self.sample_info_dict['n_classes'] = self.n_classes
-        self.sample_info_dict['classes'] = self.classes
-        self.sample_info_dict['n_feas'] = self.n_feas
+        self.sample_info_dict["n_classes"] = self.n_classes
+        self.sample_info_dict["classes"] = self.classes
+        self.sample_info_dict["n_feas"] = self.n_feas
 
         for k, v in viewitems(kwargs):
             self.sample_info_dict[k] = v
@@ -1249,7 +1649,7 @@ class Samples(object):
 
     def _classes(self):
 
-        if hasattr(self, 'model'):
+        if hasattr(self, "model"):
             return self.model.classes_
         else:
 
@@ -1264,18 +1664,19 @@ class Samples(object):
                 return list()
 
     @staticmethod
-    def _stack_samples(counter,
-                       test_stk,
-                       train_stk,
-                       test_samples_temp,
-                       train_samples_temp,
-                       clear_test_stk,
-                       clear_train_stk,
-                       test_clear_temp,
-                       train_clear_temp,
-                       weights_train_stk,
-                       train_weights_temp):
-
+    def _stack_samples(
+        counter,
+        test_stk,
+        train_stk,
+        test_samples_temp,
+        train_samples_temp,
+        clear_test_stk,
+        clear_train_stk,
+        test_clear_temp,
+        train_clear_temp,
+        weights_train_stk,
+        train_weights_temp,
+    ):
         """
         Stacks sub-samples
         """
@@ -1309,7 +1710,6 @@ class Samples(object):
         return test_stk, train_stk, clear_test_stk, clear_train_stk, weights_train_stk
 
     def get_test_train(self, array2sample, sample, weights2sample, clear2sample):
-
         """
         Randomly sub-samples by integer or percentage
 
@@ -1326,15 +1726,23 @@ class Samples(object):
         n_samples = array2sample.shape[0]
 
         if isinstance(sample, float):
-            random_subsample = np.random.choice(range(0, n_samples), size=int(sample*n_samples), replace=False)
+            random_subsample = np.random.choice(
+                range(0, n_samples), size=int(sample * n_samples), replace=False
+            )
         elif isinstance(sample, int):
 
-            n_sample = sample if sample <= len(range(0, n_samples)) else len(range(0, n_samples))
-            random_subsample = np.random.choice(range(0, n_samples), size=n_sample, replace=False)
+            n_sample = (
+                sample
+                if sample <= len(range(0, n_samples))
+                else len(range(0, n_samples))
+            )
+            random_subsample = np.random.choice(
+                range(0, n_samples), size=n_sample, replace=False
+            )
 
         else:
 
-            logger.error('  The sample number must be an integer or float.')
+            logger.error("  The sample number must be an integer or float.")
             raise TypeError
 
         # Create the test samples.
@@ -1360,10 +1768,15 @@ class Samples(object):
             test_clear_samples = None
             train_clear_samples = None
 
-        return test_samples, train_samples, test_clear_samples, train_clear_samples, train_weight_samples
+        return (
+            test_samples,
+            train_samples,
+            test_clear_samples,
+            train_clear_samples,
+            train_weight_samples,
+        )
 
     def get_class_subsample(self, class_key, clear_observations):
-
         """
         Sub-samples by `response` class.
 
@@ -1413,7 +1826,9 @@ class Samples(object):
         else:
             current_weights = None
 
-        if not isinstance(clear_observations, np.ndarray) and not isinstance(self.sample_weight, np.ndarray):
+        if not isinstance(clear_observations, np.ndarray) and not isinstance(
+            self.sample_weight, np.ndarray
+        ):
             return curr_cl, None, None, False, cl_indices
         else:
             return curr_cl, current_weights, current_clear, False, cl_indices
@@ -1443,9 +1858,9 @@ class Samples(object):
 
     def _create_group_strata(self):
 
-        groups = 'abcdefghijklmnopqrstuvwxyz'
+        groups = "abcdefghijklmnopqrstuvwxyz"
 
-        self.df['GROUP'] = '--'
+        self.df["GROUP"] = "--"
 
         c = 0
         gdd = 1
@@ -1453,13 +1868,21 @@ class Samples(object):
         self.n_groups = float(len(self.y_grids) * len(self.x_grids))
 
         # Set the groups for stratification.
-        for ygi, xgj in itertools.product(range(0, len(self.y_grids)-1), range(0, len(self.x_grids)-1)):
+        for ygi, xgj in itertools.product(
+            range(0, len(self.y_grids) - 1), range(0, len(self.x_grids) - 1)
+        ):
 
             g = groups[c] * gdd
 
-            self.df['GROUP'] = [g if (self.x_grids[xgj] <= x_ < self.x_grids[xgj+1]) and
-                                     (self.y_grids[ygi] <= y_ < self.y_grids[ygi+1]) else
-                                gr for x_, y_, gr in zip(self.df['X'], self.df['Y'], self.df['GROUP'])]
+            self.df["GROUP"] = [
+                (
+                    g
+                    if (self.x_grids[xgj] <= x_ < self.x_grids[xgj + 1])
+                    and (self.y_grids[ygi] <= y_ < self.y_grids[ygi + 1])
+                    else gr
+                )
+                for x_, y_, gr in zip(self.df["X"], self.df["Y"], self.df["GROUP"])
+            ]
 
             c += 1
             if c == len(groups):
@@ -1468,7 +1891,6 @@ class Samples(object):
                 gdd += 1
 
     def _sample_group(self, class_key, sample_size):
-
         """
         Args:
             class_key (int): The class to sample from.
@@ -1476,10 +1898,10 @@ class Samples(object):
         """
 
         # DataFrame that contains the current class.
-        df_sub = self.df.query('response == {CK}'.format(CK=class_key))
+        df_sub = self.df.query("response == {CK}".format(CK=class_key))
 
         # Save the original row indices.
-        df_sub['ORIG_INDEX'] = df_sub.index
+        df_sub["ORIG_INDEX"] = df_sub.index
 
         # Reorder the row index.
         df_sub.reset_index(inplace=True, drop=True)
@@ -1503,7 +1925,6 @@ class Samples(object):
             self.train_idx += df_sub.iloc[train_index].ORIG_INDEX.tolist()
 
     def _create_grid_strata(self, spacing):
-
         """Creates grid strata for sample stratification"""
 
         min_x = self.XY[:, 0].min()
@@ -1512,13 +1933,12 @@ class Samples(object):
         min_y = self.XY[:, 1].min()
         max_y = self.XY[:, 1].max()
 
-        self.x_grids = np.arange(min_x, max_x+spacing, spacing)
-        self.y_grids = np.arange(min_y, max_y+spacing, spacing)
+        self.x_grids = np.arange(min_x, max_x + spacing, spacing)
+        self.y_grids = np.arange(min_y, max_y + spacing, spacing)
 
         self.n_grids = len(self.x_grids) * len(self.y_grids)
 
     def _stratify(self, class_key, cl):
-
         """
         Grid stratification
 
@@ -1530,10 +1950,10 @@ class Samples(object):
         samples_collected = 0
 
         # DataFrame that contains the current class.
-        df_sub = self.df.query('response == {CK}'.format(CK=class_key))
+        df_sub = self.df.query("response == {CK}".format(CK=class_key))
 
         # Save the original row indices.
-        df_sub['ORIG_INDEX'] = df_sub.index
+        df_sub["ORIG_INDEX"] = df_sub.index
 
         train_index_sub = list()
 
@@ -1551,8 +1971,9 @@ class Samples(object):
                 break
 
             # Get `samps_per_grid` samples from each GROUP strata.
-            dfg = df_sub.groupby('GROUP', group_keys=False).apply(lambda xr_: xr_.sample(min(len(xr_),
-                                                                                             samps_per_grid)))
+            dfg = df_sub.groupby("GROUP", group_keys=False).apply(
+                lambda xr_: xr_.sample(min(len(xr_), samps_per_grid))
+            )
 
             # The train indices are
             #   the DataFrame index.
@@ -1577,12 +1998,16 @@ class Samples(object):
             self.train_idx += df_sub.iloc[train_index].ORIG_INDEX.tolist()
 
             # Remove the rows that were sampled.
-            df_sub.drop(np.array(sorted(list(train_index)), dtype='int64'), axis=0, inplace=True)
+            df_sub.drop(
+                np.array(sorted(list(train_index)), dtype="int64"), axis=0, inplace=True
+            )
 
         if len(self.train_idx) > cl:
 
-            ran = np.random.choice(range(0, len(self.train_idx)), size=cl, replace=False)
-            self.train_idx = list(np.array(self.train_idx, dtype='int64')[ran])
+            ran = np.random.choice(
+                range(0, len(self.train_idx)), size=cl, replace=False
+            )
+            self.train_idx = list(np.array(self.train_idx, dtype="int64")[ran])
 
     # def _stratify(self, y_grids, x_grids, n_match_samps, n_total_samps):
     #
@@ -1623,7 +2048,6 @@ class Samples(object):
     #     return n_match_samps
 
     def _recode_labels(self, recode_dict):
-
         """
         Recodes response labels
 
@@ -1642,7 +2066,6 @@ class Samples(object):
         self.df[self.response_label] = new_samps
 
     def _recode_all(self, vs_all_list):
-
         """
         Recodes all classes in list to 1 and all other classes to 0
 
@@ -1664,7 +2087,6 @@ class Samples(object):
         self.df[self.response_label] = new_samps
 
     def _remove_min_observations(self, clear_observations):
-
         """
         Removes samples with less than minimum time series requirement
 
@@ -1685,7 +2107,6 @@ class Samples(object):
         return clear_observations[self.clear_idx]
 
     def _remove_classes(self, classes2remove, clear_observations):
-
         """
         Removes specific classes from the data
 
@@ -1696,7 +2117,9 @@ class Samples(object):
 
         for class2remove in classes2remove:
 
-            self.class_idx = np.where(self.all_samps[:, self.label_idx] != class2remove)[0]
+            self.class_idx = np.where(
+                self.all_samps[:, self.label_idx] != class2remove
+            )[0]
 
             self.all_samps = self.all_samps[self.class_idx]
 
@@ -1717,7 +2140,6 @@ class Samples(object):
         return clear_observations
 
     def remove_values(self, value2remove, fea_check):
-
         """
         Removes values from the sample data
 
@@ -1730,21 +2152,22 @@ class Samples(object):
             labels (ndarray)
         """
 
-        idx = np.where(self.p_vars[:, fea_check-1] < value2remove)
+        idx = np.where(self.p_vars[:, fea_check - 1] < value2remove)
 
         self.p_vars = np.float32(np.delete(self.p_vars, idx, axis=0))
         self.labels = np.float32(np.delete(self.labels, idx, axis=0))
 
-    def load4crf(self,
-                 predictors,
-                 labels,
-                 bands=None,
-                 scale_factor=1.0,
-                 n_jobs=1,
-                 train_x=None,
-                 train_y=None,
-                 **kwargs):
-
+    def load4crf(
+        self,
+        predictors,
+        labels,
+        bands=None,
+        scale_factor=1.0,
+        n_jobs=1,
+        train_x=None,
+        train_y=None,
+        **kwargs
+    ):
         """
         Loads data for Conditional Random Fields on a grid
 
@@ -1767,7 +2190,7 @@ class Samples(object):
 
             if len(predictors) != len(labels):
 
-                logger.error('  The list lengths do not match.')
+                logger.error("  The list lengths do not match.")
                 raise AssertionError
 
         self.sample_info_dict = dict()
@@ -1782,15 +2205,15 @@ class Samples(object):
         self.im_rows = None
         self.im_cols = None
 
-        if 'rows' in kwargs:
+        if "rows" in kwargs:
 
-            self.im_rows = kwargs['rows']
-            del kwargs['rows']
+            self.im_rows = kwargs["rows"]
+            del kwargs["rows"]
 
-        if 'cols' in kwargs:
+        if "cols" in kwargs:
 
-            self.im_cols = kwargs['cols']
-            del kwargs['cols']
+            self.im_cols = kwargs["cols"]
+            del kwargs["cols"]
 
         # Arrange the predictors.
         if isinstance(predictors, list):
@@ -1809,7 +2232,9 @@ class Samples(object):
                     self.im_rows, self.im_cols = labels[0].shape
                 else:
 
-                    logger.error('  The training labels must be a list of strings or ndarrays.')
+                    logger.error(
+                        "  The training labels must be a list of strings or ndarrays."
+                    )
                     raise TypeError
 
             # Get the standardization scaler.
@@ -1820,11 +2245,11 @@ class Samples(object):
                     with raster_tools.ropen(pim) as i_info:
 
                         if not isinstance(bands, list):
-                            bands = list(range(1, i_info.bands+1))
+                            bands = list(range(1, i_info.bands + 1))
 
-                        data_array_ = i_info.read(bands=bands,
-                                                  predictions=True,
-                                                  **kwargs)
+                        data_array_ = i_info.read(
+                            bands=bands, predictions=True, **kwargs
+                        )
 
                         if not isinstance(data_array, np.ndarray):
 
@@ -1842,16 +2267,22 @@ class Samples(object):
 
                     i_info = None
 
-                    scaler = RobustScaler(quantile_range=(2, 98)).fit(data_array / scale_factor)
+                    scaler = RobustScaler(quantile_range=(2, 98)).fit(
+                        data_array / scale_factor
+                    )
 
                     data_array = None
 
                 # Setup the predictors array.
-                self.p_vars = np.zeros((n_patches,
-                                        self.im_rows,
-                                        self.im_cols,
-                                        bands+1),           # 1 extra band as a constant
-                                       dtype='float32')
+                self.p_vars = np.zeros(
+                    (
+                        n_patches,
+                        self.im_rows,
+                        self.im_cols,
+                        bands + 1,
+                    ),  # 1 extra band as a constant
+                    dtype="float32",
+                )
 
                 # Add a constant feature.
                 self.p_vars[:, :, :, -1] = 1
@@ -1859,7 +2290,7 @@ class Samples(object):
                 # Load each predictor.
                 for pri, predictor in enumerate(predictors):
 
-                    if ('i' in kwargs) and ('j' in kwargs):
+                    if ("i" in kwargs) and ("j" in kwargs):
 
                         lab_y = 0
                         lab_x = 0
@@ -1889,33 +2320,37 @@ class Samples(object):
                     # Scale and reshape the predictors.
                     if n_jobs not in [0, 1]:
 
-                        self.p_vars[pri, :, :, :-1] = scaler.transform(raster_tools.read(file_name=predictor,
-                                                                                         bands=bands,
-                                                                                         y=lab_y,
-                                                                                         x=lab_x,
-                                                                                         rows=self.im_rows,
-                                                                                         cols=self.im_cols,
-                                                                                         predictions=True,
-                                                                                         n_jobs=n_jobs,
-                                                                                         **kwargs) / scale_factor).reshape(
-                            self.im_rows,
-                            self.im_cols,
-                            bands)
+                        self.p_vars[pri, :, :, :-1] = scaler.transform(
+                            raster_tools.read(
+                                file_name=predictor,
+                                bands=bands,
+                                y=lab_y,
+                                x=lab_x,
+                                rows=self.im_rows,
+                                cols=self.im_cols,
+                                predictions=True,
+                                n_jobs=n_jobs,
+                                **kwargs
+                            )
+                            / scale_factor
+                        ).reshape(self.im_rows, self.im_cols, bands)
 
                     else:
 
                         with raster_tools.ropen(predictor) as i_info:
 
-                            self.p_vars[pri, :, :, :-1] = scaler.transform(i_info.read(bands=bands,
-                                                                                       y=lab_y,
-                                                                                       x=lab_x,
-                                                                                       rows=self.im_rows,
-                                                                                       cols=self.im_cols,
-                                                                                       predictions=True,
-                                                                                       **kwargs) / scale_factor).reshape(
-                                self.im_rows,
-                                self.im_cols,
-                                bands)
+                            self.p_vars[pri, :, :, :-1] = scaler.transform(
+                                i_info.read(
+                                    bands=bands,
+                                    y=lab_y,
+                                    x=lab_x,
+                                    rows=self.im_rows,
+                                    cols=self.im_cols,
+                                    predictions=True,
+                                    **kwargs
+                                )
+                                / scale_factor
+                            ).reshape(self.im_rows, self.im_cols, bands)
 
                         i_info = None
 
@@ -1929,10 +2364,9 @@ class Samples(object):
                     self.im_rows, self.im_cols = predictors[0].shape
 
                 # Setup the predictors array.
-                self.p_vars = np.zeros((n_patches,
-                                        self.im_rows,
-                                        self.im_cols,
-                                        bands+1), dtype='float32')
+                self.p_vars = np.zeros(
+                    (n_patches, self.im_rows, self.im_cols, bands + 1), dtype="float32"
+                )
 
                 # Add a constant feature.
                 self.p_vars[:, :, :, -1] = 1
@@ -1942,29 +2376,40 @@ class Samples(object):
 
                     if pri == 0:
 
-                        data_array = predictor.transpose(1, 2, 0).reshape(self.im_rows*self.im_cols,
-                                                                          bands).copy()
+                        data_array = (
+                            predictor.transpose(1, 2, 0)
+                            .reshape(self.im_rows * self.im_cols, bands)
+                            .copy()
+                        )
 
                     else:
 
-                        data_array = np.vstack((data_array,
-                                                predictor.transpose(1, 2, 0).reshape(self.im_rows*self.im_cols,
-                                                                                     bands)))
+                        data_array = np.vstack(
+                            (
+                                data_array,
+                                predictor.transpose(1, 2, 0).reshape(
+                                    self.im_rows * self.im_cols, bands
+                                ),
+                            )
+                        )
 
-                scaler = RobustScaler(quantile_range=(2, 98)).fit(data_array / scale_factor)
+                scaler = RobustScaler(quantile_range=(2, 98)).fit(
+                    data_array / scale_factor
+                )
 
                 data_array = None
 
                 for pri, predictor in enumerate(predictors):
 
                     self.p_vars[pri, :, :, :-1] = scaler.transform(
-                        predictor.transpose(1, 2, 0).reshape(self.im_rows*self.im_cols,
-                                                             bands) / scale_factor).reshape(self.im_rows,
-                                                                                            self.im_cols,
-                                                                                            bands)
+                        predictor.transpose(1, 2, 0).reshape(
+                            self.im_rows * self.im_cols, bands
+                        )
+                        / scale_factor
+                    ).reshape(self.im_rows, self.im_cols, bands)
 
         else:
-            logger.warning('  No variables were shaped for CRF.')
+            logger.warning("  No variables were shaped for CRF.")
 
         # Arrange the labels.
         if isinstance(labels, list):
@@ -1974,7 +2419,9 @@ class Samples(object):
                 with raster_tools.ropen(labels[0]) as l_info:
 
                     # Create the label array.
-                    self.labels = np.zeros((n_patches, l_info.rows, l_info.cols), dtype='uint8')
+                    self.labels = np.zeros(
+                        (n_patches, l_info.rows, l_info.cols), dtype="uint8"
+                    )
 
                 l_info = None
 
@@ -1989,10 +2436,12 @@ class Samples(object):
 
                 rows, cols = labels[0].shape
 
-                self.labels = np.array(labels, dtype='uint8').reshape(n_patches, rows, cols)
+                self.labels = np.array(labels, dtype="uint8").reshape(
+                    n_patches, rows, cols
+                )
 
         else:
-            logger.warning('  No labels were shaped for CRF.')
+            logger.warning("  No labels were shaped for CRF.")
 
         if isinstance(self.p_vars, np.ndarray):
             self.p_vars[np.isnan(self.p_vars) | np.isinf(self.p_vars)] = 0
@@ -2006,21 +2455,27 @@ class Samples(object):
             #   negative class labels.
             if np.min(self.classes) < 0:
 
-                logger.info('  The class labels should not contain negative values, but are:')
+                logger.info(
+                    "  The class labels should not contain negative values, but are:"
+                )
                 logger.error(self.classes)
                 raise ValueError
 
             # Check whether the classes begin with 0.
             if self.classes[0] != 0:
 
-                logger.info('  The class labels must begin with 0 when using CRF models, but are:')
+                logger.info(
+                    "  The class labels must begin with 0 when using CRF models, but are:"
+                )
                 logger.error(self.classes)
                 raise ValueError
 
             # Check whether the classes are increasing by 1.
             if np.any(np.abs(np.diff(self.classes)) > 1):
 
-                logger.info('  The class labels should increase by 1, starting with 0, but are:')
+                logger.info(
+                    "  The class labels should increase by 1, starting with 0, but are:"
+                )
                 logger.error(self.classes)
                 raise ValueError
 
@@ -2031,20 +2486,16 @@ class Samples(object):
 
         self.n_feas = self.p_vars.shape[3]
 
-        self.update_sample_info(scaler=scaler,
-                                scaled=True,
-                                use_xy=False)
+        self.update_sample_info(scaler=scaler, scaled=True, use_xy=False)
 
 
 class Visualization(object):
-
     """A class for data visualization"""
 
     def __init__(self):
         self.time_stamp = time.asctime(time.localtime(time.time()))
 
     def vis_parallel_coordinates(self):
-
         """
         Visualize time series data in parallel coordinates style
 
@@ -2061,8 +2512,19 @@ class Visualization(object):
 
         x = list(range(self.p_vars.shape[1]))
 
-        colors = {1: 'black', 2: 'cyan', 3: 'yellow', 4: 'red', 5: 'orange', 6: 'green',
-                  7: 'purple', 8: 'magenta', 9: '#5F4C0B', 10: '#21610B', 11: '#210B61'}
+        colors = {
+            1: "black",
+            2: "cyan",
+            3: "yellow",
+            4: "red",
+            5: "orange",
+            6: "green",
+            7: "purple",
+            8: "magenta",
+            9: "#5F4C0B",
+            10: "#21610B",
+            11: "#210B61",
+        }
 
         leg_items = []
         leg_names = []
@@ -2079,18 +2541,22 @@ class Visualization(object):
                 leg_items.append(p)
                 leg_names.append(str(class_label))
 
-        plt.legend(tuple(leg_items), tuple(leg_names),
-                   scatterpoints=1,
-                   loc='upper left',
-                   ncol=3,
-                   fontsize=12)
+        plt.legend(
+            tuple(leg_items),
+            tuple(leg_names),
+            scatterpoints=1,
+            loc="upper left",
+            ncol=3,
+            fontsize=12,
+        )
 
         plt.show()
 
         plt.close()
 
-    def vis_dimensionality_reduction(self, method='pca', n_components=3, class_list=[], class_names={}, labels=None):
-
+    def vis_dimensionality_reduction(
+        self, method="pca", n_components=3, class_list=[], class_names={}, labels=None
+    ):
         """
         Visualize dimensionality reduction
 
@@ -2112,14 +2578,16 @@ class Visualization(object):
             >>> cl.vis_dimensionality_reduction(n_components=3)
         """
 
-        if method == 'spe':
+        if method == "spe":
 
-            embedder = manifold.SpectralEmbedding(n_components=n_components, random_state=0, eigen_solver='arpack')
+            embedder = manifold.SpectralEmbedding(
+                n_components=n_components, random_state=0, eigen_solver="arpack"
+            )
 
             # transform the variables
             self.p_vars_reduced = embedder.fit_transform(self.p_vars)
 
-        elif method == 'pca':
+        elif method == "pca":
 
             skPCA_ = skPCA(n_components=n_components)
             skPCA_.fit(self.p_vars)
@@ -2130,19 +2598,30 @@ class Visualization(object):
 
             # self.p_vars_reduced = eigen_values.T
 
-        elif method == 'tsne':
+        elif method == "tsne":
 
-            tsne = manifold.TSNE(n_components=n_components, init='pca', random_state=0)
+            tsne = manifold.TSNE(n_components=n_components, init="pca", random_state=0)
 
             self.p_vars_reduced = tsne.fit_transform(self.p_vars)
 
         if n_components > 2:
-            ax = plt.figure().add_subplot(111, projection='3d')
+            ax = plt.figure().add_subplot(111, projection="3d")
         else:
             ax = plt.figure().add_subplot(111)
 
-        colors = ['black', 'cyan', 'yellow', 'red', 'orange', 'green', 'purple', 'magenta',
-                  '#5F4C0B', '#21610B', '#210B61']
+        colors = [
+            "black",
+            "cyan",
+            "yellow",
+            "red",
+            "orange",
+            "green",
+            "purple",
+            "magenta",
+            "#5F4C0B",
+            "#21610B",
+            "#210B61",
+        ]
 
         if class_list:
             n_classes = len(class_list)
@@ -2169,37 +2648,53 @@ class Visualization(object):
 
             if n_components > 2:
 
-                curr_pl = ax.scatter(self.p_vars_reduced[:, 0][cl_idx], self.p_vars_reduced[:, 1][cl_idx],
-                                     self.p_vars_reduced[:, 2][cl_idx], c=colors[n_class],
-                                     edgecolor=colors[n_class], alpha=.5, label=leg_names[n_class])
+                curr_pl = ax.scatter(
+                    self.p_vars_reduced[:, 0][cl_idx],
+                    self.p_vars_reduced[:, 1][cl_idx],
+                    self.p_vars_reduced[:, 2][cl_idx],
+                    c=colors[n_class],
+                    edgecolor=colors[n_class],
+                    alpha=0.5,
+                    label=leg_names[n_class],
+                )
 
             else:
 
-                curr_pl = ax.scatter(self.p_vars_reduced[:, 0][cl_idx], self.p_vars_reduced[:, 1][cl_idx],
-                                     c=colors[n_class], edgecolor=colors[n_class], alpha=.5)
+                curr_pl = ax.scatter(
+                    self.p_vars_reduced[:, 0][cl_idx],
+                    self.p_vars_reduced[:, 1][cl_idx],
+                    c=colors[n_class],
+                    edgecolor=colors[n_class],
+                    alpha=0.5,
+                )
 
             leg_items.append(curr_pl)
 
-            ax.set_xlabel('1st component')
-            ax.set_ylabel('2nd component')
+            ax.set_xlabel("1st component")
+            ax.set_ylabel("2nd component")
 
         ax.set_xlim3d(self.p_vars_reduced[:, 0].min(), self.p_vars_reduced[:, 0].max())
         ax.set_ylim3d(self.p_vars_reduced[:, 1].min(), self.p_vars_reduced[:, 1].max())
 
         if n_components > 2:
 
-            ax.set_zlim3d(self.p_vars_reduced[:, 2].min(), self.p_vars_reduced[:, 2].max())
+            ax.set_zlim3d(
+                self.p_vars_reduced[:, 2].min(), self.p_vars_reduced[:, 2].max()
+            )
 
-            ax.set_zlabel('3rd component')
+            ax.set_zlabel("3rd component")
             ax.legend()
 
         else:
 
-            plt.legend(tuple(leg_items), tuple(leg_names),
-                       scatterpoints=1,
-                       loc='upper left',
-                       ncol=3,
-                       fontsize=12)
+            plt.legend(
+                tuple(leg_items),
+                tuple(leg_names),
+                scatterpoints=1,
+                loc="upper left",
+                ncol=3,
+                fontsize=12,
+            )
 
         if labels:
 
@@ -2213,17 +2708,26 @@ class Visualization(object):
 
             for i in range(0, len(x)):
 
-                ax.annotate('%d, %d' % (int(x[i]), int(y[i])), xy=(pv[i, 0], pv[i, 1]), size=6, color='#1C1C1C',
-                            xytext=(-10, 10), bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=.5),
-                            arrowprops=dict(arrowstyle='-', connectionstyle='arc3,rad=0'),
-                            textcoords='offset points', ha='right', va='bottom')
+                ax.annotate(
+                    "%d, %d" % (int(x[i]), int(y[i])),
+                    xy=(pv[i, 0], pv[i, 1]),
+                    size=6,
+                    color="#1C1C1C",
+                    xytext=(-10, 10),
+                    bbox=dict(boxstyle="round,pad=0.5", fc="white", alpha=0.5),
+                    arrowprops=dict(arrowstyle="-", connectionstyle="arc3,rad=0"),
+                    textcoords="offset points",
+                    ha="right",
+                    va="bottom",
+                )
 
         plt.show()
 
         plt.close()
 
-    def vis_data(self, fea_1, fea_2, fea_3=None, class_list=[], class_names={}, labels=None):
-
+    def vis_data(
+        self, fea_1, fea_2, fea_3=None, class_list=[], class_names={}, labels=None
+    ):
         """
         Visualize classes in feature space
 
@@ -2250,12 +2754,23 @@ class Visualization(object):
         """
 
         if isinstance(fea_3, int):
-            ax = plt.figure().add_subplot(111, projection='3d')
+            ax = plt.figure().add_subplot(111, projection="3d")
         else:
             ax = plt.figure().add_subplot(111)
 
-        colors = ['black', 'cyan', 'yellow', 'red', 'orange', 'green', 'purple', 'magenta',
-                  '#5F4C0B', '#21610B', '#210B61']
+        colors = [
+            "black",
+            "cyan",
+            "yellow",
+            "red",
+            "orange",
+            "green",
+            "purple",
+            "magenta",
+            "#5F4C0B",
+            "#21610B",
+            "#210B61",
+        ]
 
         if class_list:
             n_classes = len(class_list)
@@ -2282,33 +2797,44 @@ class Visualization(object):
 
             if fea_3:
 
-                curr_pl = ax.scatter(self.p_vars[:, fea_1-1][cl_idx], self.p_vars[:, fea_2-1][cl_idx],
-                                     self.p_vars[:, fea_3-1][cl_idx], c=colors[n_class], edgecolor=colors[n_class],
-                                     alpha=.5, label=leg_names[n_class])
+                curr_pl = ax.scatter(
+                    self.p_vars[:, fea_1 - 1][cl_idx],
+                    self.p_vars[:, fea_2 - 1][cl_idx],
+                    self.p_vars[:, fea_3 - 1][cl_idx],
+                    c=colors[n_class],
+                    edgecolor=colors[n_class],
+                    alpha=0.5,
+                    label=leg_names[n_class],
+                )
 
             else:
 
-                curr_pl = ax.scatter(self.p_vars[:, fea_1-1][cl_idx], self.p_vars[:, fea_2-1][cl_idx],
-                                     c=colors[n_class], edgecolor=colors[n_class], alpha=.5)
+                curr_pl = ax.scatter(
+                    self.p_vars[:, fea_1 - 1][cl_idx],
+                    self.p_vars[:, fea_2 - 1][cl_idx],
+                    c=colors[n_class],
+                    edgecolor=colors[n_class],
+                    alpha=0.5,
+                )
 
             leg_items.append(curr_pl)
 
             # plt.xlabel('Feature: %d' % fea_1)
             # plt.ylabel('Feature: %d' % fea_2)
 
-            ax.set_xlabel('Feature: %d' % fea_1)
-            ax.set_ylabel('Feature: %d' % fea_2)
+            ax.set_xlabel("Feature: %d" % fea_1)
+            ax.set_ylabel("Feature: %d" % fea_2)
 
         limits = False
 
         if limits:
 
-            ax.set_xlim(-1, np.max(self.p_vars[:, fea_1-1]))
-            ax.set_ylim(-1, np.max(self.p_vars[:, fea_2-1]))
+            ax.set_xlim(-1, np.max(self.p_vars[:, fea_1 - 1]))
+            ax.set_ylim(-1, np.max(self.p_vars[:, fea_2 - 1]))
 
         if fea_3:
 
-            ax.set_zlabel('Feature: %d' % fea_3)
+            ax.set_zlabel("Feature: %d" % fea_3)
             ax.legend()
 
             # if limits:
@@ -2317,11 +2843,14 @@ class Visualization(object):
 
         else:
 
-            plt.legend(tuple(leg_items), tuple(leg_names),
-                       scatterpoints=1,
-                       loc='upper left',
-                       ncol=3,
-                       fontsize=12)
+            plt.legend(
+                tuple(leg_items),
+                tuple(leg_names),
+                scatterpoints=1,
+                loc="upper left",
+                ncol=3,
+                fontsize=12,
+            )
 
         if labels:
 
@@ -2335,19 +2864,32 @@ class Visualization(object):
 
             for i in range(0, len(x)):
 
-                ax.annotate('%d, %d' % (int(x[i]), int(y[i])), xy=(pv[i, fea_1-1], pv[i, fea_2-1]), size=6,
-                            color='#1C1C1C', xytext=(-10, 10), bbox=dict(boxstyle='round,pad=0.5',
-                                                                         fc='white', alpha=.5),
-                            arrowprops=dict(arrowstyle='-', connectionstyle='arc3,rad=0'),
-                            textcoords='offset points', ha='right', va='bottom')
+                ax.annotate(
+                    "%d, %d" % (int(x[i]), int(y[i])),
+                    xy=(pv[i, fea_1 - 1], pv[i, fea_2 - 1]),
+                    size=6,
+                    color="#1C1C1C",
+                    xytext=(-10, 10),
+                    bbox=dict(boxstyle="round,pad=0.5", fc="white", alpha=0.5),
+                    arrowprops=dict(arrowstyle="-", connectionstyle="arc3,rad=0"),
+                    textcoords="offset points",
+                    ha="right",
+                    va="bottom",
+                )
 
         plt.show()
 
         plt.close()
 
-    def vis_decision(self, fea_1, fea_2, classifier_info={'classifier': 'rf'}, class2check=1,
-                     compare=1, locate_outliers=False):
-
+    def vis_decision(
+        self,
+        fea_1,
+        fea_2,
+        classifier_info={"classifier": "rf"},
+        class2check=1,
+        compare=1,
+        locate_outliers=False,
+    ):
         """
         Visualize a model decision function
 
@@ -2388,36 +2930,49 @@ class Visualization(object):
         self._default_parameters()
 
         # take only two features
-        self.p_vars = self.p_vars[:, [fea_1-1, fea_2-1]]
+        self.p_vars = self.p_vars[:, [fea_1 - 1, fea_2 - 1]]
 
         # max_depth_2 = classifier_info['max_depth'] + 50
         # C2 = classifier_info['C'] + 5
 
-        colors = ['black', 'cyan', 'yellow', 'red', 'orange', 'green', 'purple', 'magenta', '#5F4C0B', '#21610B',
-                  '#210B61']
+        colors = [
+            "black",
+            "cyan",
+            "yellow",
+            "red",
+            "orange",
+            "green",
+            "purple",
+            "magenta",
+            "#5F4C0B",
+            "#21610B",
+            "#210B61",
+        ]
 
-        cm = plt.cm.gist_stern # plt.cm.RdBu    # for the decision boundaries
-        cm_bright = ListedColormap(['#FF0000', '#0000FF'])
+        cm = plt.cm.gist_stern  # plt.cm.RdBu    # for the decision boundaries
+        cm_bright = ListedColormap(["#FF0000", "#0000FF"])
 
-        x_min, x_max = self.p_vars[:, 0].min() - .5, self.p_vars[:, 0].max() + .5
-        y_min, y_max = self.p_vars[:, 1].min() - .5, self.p_vars[:, 1].max() + .5
+        x_min, x_max = self.p_vars[:, 0].min() - 0.5, self.p_vars[:, 0].max() + 0.5
+        y_min, y_max = self.p_vars[:, 1].min() - 0.5, self.p_vars[:, 1].max() + 0.5
 
-        xx, yy = np.meshgrid(np.arange(x_min, x_max, .05), np.arange(y_min, y_max, .05))
+        xx, yy = np.meshgrid(
+            np.arange(x_min, x_max, 0.05), np.arange(y_min, y_max, 0.05)
+        )
 
         if compare == 1:
 
-            if 'rf' in classifier_info['classifier']:
+            if "rf" in classifier_info["classifier"]:
 
                 clf1 = RandomForestClassifier(**self.classifier_info_rf)
 
                 clf2 = ExtraTreesClassifier(**self.classifier_info_rf)
 
-            elif classifier_info['classifier'] == 'svmc':
+            elif classifier_info["classifier"] == "svmc":
 
-                clf1 = SVC(gamma=classifier_info['gamma'], C=classifier_info['C'])
-                clf2 = SVC(gamma=classifier_info['gamma'], C=C2)
+                clf1 = SVC(gamma=classifier_info["gamma"], C=classifier_info["C"])
+                clf2 = SVC(gamma=classifier_info["gamma"], C=C2)
 
-            elif classifier_info['classifier'] == 'bayes':
+            elif classifier_info["classifier"] == "bayes":
 
                 clf1 = GaussianNB()
                 clf2 = GaussianNB()
@@ -2440,35 +2995,47 @@ class Visualization(object):
             ax2.set_yticks(())
 
             # plot the decision boundary
-            if hasattr(clf1, 'decision_function'):
-                Z1 = clf1.decision_function(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
-                Z2 = clf2.decision_function(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+            if hasattr(clf1, "decision_function"):
+                Z1 = clf1.decision_function(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
+                Z2 = clf2.decision_function(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
             else:
-                Z1 = clf1.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
-                Z2 = clf2.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+                Z1 = clf1.predict_proba(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
+                Z2 = clf2.predict_proba(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
 
             # Put the result into a color plot
             Z1 = Z1.reshape(xx.shape)
-            ax1.contourf(xx, yy, Z1, cmap=cm, alpha=.8)
+            ax1.contourf(xx, yy, Z1, cmap=cm, alpha=0.8)
 
             Z2 = Z2.reshape(xx.shape)
-            ax2.contourf(xx, yy, Z2, cmap=cm, alpha=.8)
+            ax2.contourf(xx, yy, Z2, cmap=cm, alpha=0.8)
 
         elif compare == 2:
 
-            clf1 = RandomForestClassifier(max_depth=classifier_info['max_depth'],
-                                          n_estimators=classifier_info['trees'],
-                                          max_features=classifier_info['rand_vars'],
-                                          min_samples_split=classifier_info['min_samps'],
-                                          n_jobs=-1)
+            clf1 = RandomForestClassifier(
+                max_depth=classifier_info["max_depth"],
+                n_estimators=classifier_info["trees"],
+                max_features=classifier_info["rand_vars"],
+                min_samples_split=classifier_info["min_samps"],
+                n_jobs=-1,
+            )
 
-            clf2 = ExtraTreesClassifier(max_depth=classifier_info['max_depth'],
-                                        n_estimators=classifier_info['trees'],
-                                        max_features=classifier_info['rand_vars'],
-                                        min_samples_split=classifier_info['min_samps'],
-                                        n_jobs=-1)
+            clf2 = ExtraTreesClassifier(
+                max_depth=classifier_info["max_depth"],
+                n_estimators=classifier_info["trees"],
+                max_features=classifier_info["rand_vars"],
+                min_samples_split=classifier_info["min_samps"],
+                n_jobs=-1,
+            )
 
-            clf3 = SVC(gamma=classifier_info['gamma'], C=classifier_info['C'])
+            clf3 = SVC(gamma=classifier_info["gamma"], C=classifier_info["C"])
 
             clf4 = GaussianNB()
 
@@ -2518,38 +3085,54 @@ class Visualization(object):
             ax4.set_yticks(())
 
             ## plot the decision boundary
-            if hasattr(clf1, 'decision_function'):
-                Z1 = clf1.decision_function(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+            if hasattr(clf1, "decision_function"):
+                Z1 = clf1.decision_function(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
             else:
-                Z1 = clf1.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+                Z1 = clf1.predict_proba(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
 
-            if hasattr(clf2, 'decision_function'):
-                Z2 = clf2.decision_function(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+            if hasattr(clf2, "decision_function"):
+                Z2 = clf2.decision_function(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
             else:
-                Z2 = clf2.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+                Z2 = clf2.predict_proba(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
 
-            if hasattr(clf3, 'decision_function'):
-                Z3 = clf3.decision_function(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+            if hasattr(clf3, "decision_function"):
+                Z3 = clf3.decision_function(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
             else:
-                Z3 = clf3.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+                Z3 = clf3.predict_proba(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
 
-            if hasattr(clf4, 'decision_function'):
-                Z4 = clf4.decision_function(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+            if hasattr(clf4, "decision_function"):
+                Z4 = clf4.decision_function(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
             else:
-                Z4 = clf4.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, class2check-1]
+                Z4 = clf4.predict_proba(np.c_[xx.ravel(), yy.ravel()])[
+                    :, class2check - 1
+                ]
 
             # Put the result into a color plot
             Z1 = Z1.reshape(xx.shape)
-            ax1.contourf(xx, yy, Z1, cmap=cm, alpha=.8)
+            ax1.contourf(xx, yy, Z1, cmap=cm, alpha=0.8)
 
             Z2 = Z2.reshape(xx.shape)
-            ax2.contourf(xx, yy, Z2, cmap=cm, alpha=.8)
+            ax2.contourf(xx, yy, Z2, cmap=cm, alpha=0.8)
 
             Z3 = Z3.reshape(xx.shape)
-            ax3.contourf(xx, yy, Z3, cmap=cm, alpha=.8)
+            ax3.contourf(xx, yy, Z3, cmap=cm, alpha=0.8)
 
             Z4 = Z4.reshape(xx.shape)
-            ax4.contourf(xx, yy, Z4, cmap=cm, alpha=.8)
+            ax4.contourf(xx, yy, Z4, cmap=cm, alpha=0.8)
 
         leg_items = []
         leg_names = []
@@ -2559,49 +3142,74 @@ class Visualization(object):
             cl_idx = np.where(self.labels == self.classes[n_class])
 
             # plot the training points
-            curr_pl = ax1.scatter(self.p_vars[:, 0][cl_idx], self.p_vars[:, 1][cl_idx],
-                                 c=colors[n_class], alpha=.7)#, cmap=cm_bright)
+            curr_pl = ax1.scatter(
+                self.p_vars[:, 0][cl_idx],
+                self.p_vars[:, 1][cl_idx],
+                c=colors[n_class],
+                alpha=0.7,
+            )  # , cmap=cm_bright)
 
-            ax2.scatter(self.p_vars[:, 0][cl_idx], self.p_vars[:, 1][cl_idx],
-                                 c=colors[n_class], alpha=.7)#, cmap=cm_bright)
+            ax2.scatter(
+                self.p_vars[:, 0][cl_idx],
+                self.p_vars[:, 1][cl_idx],
+                c=colors[n_class],
+                alpha=0.7,
+            )  # , cmap=cm_bright)
 
             if compare == 2:
 
-                ax3.scatter(self.p_vars[:, 0][cl_idx], self.p_vars[:, 1][cl_idx],
-                            c=colors[n_class], alpha=.7)#, cmap=cm_bright)
+                ax3.scatter(
+                    self.p_vars[:, 0][cl_idx],
+                    self.p_vars[:, 1][cl_idx],
+                    c=colors[n_class],
+                    alpha=0.7,
+                )  # , cmap=cm_bright)
 
-                ax4.scatter(self.p_vars[:, 0][cl_idx], self.p_vars[:, 1][cl_idx],
-                            c=colors[n_class], alpha=.7)#, cmap=cm_bright)
+                ax4.scatter(
+                    self.p_vars[:, 0][cl_idx],
+                    self.p_vars[:, 1][cl_idx],
+                    c=colors[n_class],
+                    alpha=0.7,
+                )  # , cmap=cm_bright)
 
             leg_items.append(curr_pl)
             leg_names.append(str(self.classes[n_class]))
 
         if compare == 1:
 
-            if 'rf' in classifier_info['classifier']:
+            if "rf" in classifier_info["classifier"]:
 
-                ax1.set_xlabel('RF, Max. depth: %d' % classifier_info['max_depth'])
-                ax2.set_xlabel('Extreme RF, Max. depth: %d' % classifier_info['max_depth'])
+                ax1.set_xlabel("RF, Max. depth: %d" % classifier_info["max_depth"])
+                ax2.set_xlabel(
+                    "Extreme RF, Max. depth: %d" % classifier_info["max_depth"]
+                )
 
-            elif classifier_info['classifier'] == 'SVM':
+            elif classifier_info["classifier"] == "SVM":
 
-                ax1.set_xlabel('C: %d' % classifier_info['C'])
-                ax2.set_xlabel('C: %d' % C2)
+                ax1.set_xlabel("C: %d" % classifier_info["C"])
+                ax2.set_xlabel("C: %d" % C2)
 
         else:
 
-            ax1.set_xlabel('Random Forest')
-            ax2.set_xlabel('Extremely Random Forest')
-            ax3.set_xlabel('SVM')
-            ax4.set_xlabel('Naives Bayes')
+            ax1.set_xlabel("Random Forest")
+            ax2.set_xlabel("Extremely Random Forest")
+            ax3.set_xlabel("SVM")
+            ax4.set_xlabel("Naives Bayes")
 
         plt.show()
 
         plt.close()
 
-    def vis_series(self, class_list=[], class_names={}, smooth=True, window_size=3, xaxis_labs=[],
-                   show_intervals=True, show_raw=False):
-
+    def vis_series(
+        self,
+        class_list=[],
+        class_names={},
+        smooth=True,
+        window_size=3,
+        xaxis_labs=[],
+        show_intervals=True,
+        show_raw=False,
+    ):
         """
         Visualize classes in a time series
 
@@ -2626,21 +3234,32 @@ class Visualization(object):
             >>>               class_names={3: 'forest', 5: 'agriculture', 8: 'water'})
         """
 
-        fig = plt.figure(facecolor='white')
+        fig = plt.figure(facecolor="white")
 
-        ax = fig.add_subplot(111, axisbg='white')
+        ax = fig.add_subplot(111, axisbg="white")
 
-        mpl.rcParams['font.size'] = 12.
-        mpl.rcParams['font.family'] = 'Verdana'
-        mpl.rcParams['axes.labelsize'] = 8.
-        mpl.rcParams['xtick.labelsize'] = 8.
-        mpl.rcParams['ytick.labelsize'] = 8.
+        mpl.rcParams["font.size"] = 12.0
+        mpl.rcParams["font.family"] = "Verdana"
+        mpl.rcParams["axes.labelsize"] = 8.0
+        mpl.rcParams["xtick.labelsize"] = 8.0
+        mpl.rcParams["ytick.labelsize"] = 8.0
 
         # new x values
-        xn_ax = np.linspace(0, self.n_feas-1, (self.n_feas-1)*10)
+        xn_ax = np.linspace(0, self.n_feas - 1, (self.n_feas - 1) * 10)
 
-        colors = ['black', 'cyan', 'yellow', 'red', 'orange', 'green', 'purple', 'magenta', '#5F4C0B', '#21610B',
-                  '#210B61']
+        colors = [
+            "black",
+            "cyan",
+            "yellow",
+            "red",
+            "orange",
+            "green",
+            "purple",
+            "magenta",
+            "#5F4C0B",
+            "#21610B",
+            "#210B61",
+        ]
 
         if not class_list:
             class_list = self.classes
@@ -2677,7 +3296,9 @@ class Visualization(object):
             # vis_p_vars[vis_p_vars == 0] = np.nan
             df_sm = _lin_interp.lin_interp(vis_p_vars.astype(np.float32))
 
-            df_sm = _rolling_stats.rolling_stats(df_sm, stat='median', window_size=window_size)
+            df_sm = _rolling_stats.rolling_stats(
+                df_sm, stat="median", window_size=window_size
+            )
 
             df_sm_std = df_sm.std(axis=1)
             df_sm_u = df_sm.mean(axis=1)
@@ -2686,15 +3307,19 @@ class Visualization(object):
 
             for idx_check in range(0, 2):
 
-                idx = np.where((df_sm[:, idx_check] > df_sm_up) | (df_sm[:, idx_check] < df_sm_um))
+                idx = np.where(
+                    (df_sm[:, idx_check] > df_sm_up) | (df_sm[:, idx_check] < df_sm_um)
+                )
 
                 if len(idx[0]) > 0:
 
                     df_sm[:, idx_check][idx] = np.median(df_sm[:, :3][idx], axis=1)
 
-            for idx_check in range(self.n_feas-1, self.n_feas-3, -1):
+            for idx_check in range(self.n_feas - 1, self.n_feas - 3, -1):
 
-                idx = np.where((df_sm[:, idx_check] > df_sm_up) | (df_sm[:, idx_check] < df_sm_um))
+                idx = np.where(
+                    (df_sm[:, idx_check] > df_sm_up) | (df_sm[:, idx_check] < df_sm_um)
+                )
 
                 if len(idx[0]) > 0:
 
@@ -2705,72 +3330,125 @@ class Visualization(object):
 
             if smooth:
 
-                df_sm_u_int = interp1d(range(self.n_feas), df_sm_u, kind='cubic')
-                df_sm_std_int = interp1d(range(self.n_feas), df_sm_std, kind='cubic')
+                df_sm_u_int = interp1d(range(self.n_feas), df_sm_u, kind="cubic")
+                df_sm_std_int = interp1d(range(self.n_feas), df_sm_std, kind="cubic")
 
             # add the class index
             # df_sm.index = [class_name]*df_sm.shape[0]
 
             # self.df = self.df.append(df_sm)
-            marker_size = .1
+            marker_size = 0.1
             line_width = 1.5
-            alpha = .5
+            alpha = 0.5
 
             for r in range(0, df_sm.shape[0]):
 
                 if show_raw:
 
                     # raw data
-                    ax.scatter(range(len(vis_p_vars[r])), vis_p_vars[r], marker='o', edgecolor='none', s=40,
-                               facecolor=colors[n_class], c=colors[n_class])
+                    ax.scatter(
+                        range(len(vis_p_vars[r])),
+                        vis_p_vars[r],
+                        marker="o",
+                        edgecolor="none",
+                        s=40,
+                        facecolor=colors[n_class],
+                        c=colors[n_class],
+                    )
 
                 # new y values
                 if smooth:
-                    yn_cor = interp1d(range(self.n_feas), df_sm[r, :], kind='cubic')
+                    yn_cor = interp1d(range(self.n_feas), df_sm[r, :], kind="cubic")
 
-                ## Savitsky Golay filtered
-                # ax.plot(range(len(df_sm_sav[r])), df_sm_sav[r], marker='o', markeredgecolor='none', markersize=5,
-                #          markerfacecolor=colors[-1], c=colors[-1], alpha=.7, lw=2)
+                    ## Savitsky Golay filtered
+                    # ax.plot(range(len(df_sm_sav[r])), df_sm_sav[r], marker='o', markeredgecolor='none', markersize=5,
+                    #          markerfacecolor=colors[-1], c=colors[-1], alpha=.7, lw=2)
 
                     ## Cubic interpolation
-                    ax.plot(xn_ax, yn_cor(xn_ax), marker='o', markeredgecolor='none', markersize=marker_size,
-                             markerfacecolor=colors[n_class], linestyle='-', c=colors[n_class], alpha=alpha,
-                             lw=line_width)
+                    ax.plot(
+                        xn_ax,
+                        yn_cor(xn_ax),
+                        marker="o",
+                        markeredgecolor="none",
+                        markersize=marker_size,
+                        markerfacecolor=colors[n_class],
+                        linestyle="-",
+                        c=colors[n_class],
+                        alpha=alpha,
+                        lw=line_width,
+                    )
 
                 else:
 
                     ## raw data
-                    ax.plot(range(len(df_sm[r])), df_sm[r], marker='o', markeredgecolor='none',
-                            markersize=marker_size, markerfacecolor=colors[-2], linestyle='-', c=colors[n_class],
-                            alpha=alpha, lw=line_width)
+                    ax.plot(
+                        range(len(df_sm[r])),
+                        df_sm[r],
+                        marker="o",
+                        markeredgecolor="none",
+                        markersize=marker_size,
+                        markerfacecolor=colors[-2],
+                        linestyle="-",
+                        c=colors[n_class],
+                        alpha=alpha,
+                        lw=line_width,
+                    )
 
             if smooth:
 
-                yn_cor = interp1d(range(self.n_feas), df_sm[-1, :], kind='cubic')
+                yn_cor = interp1d(range(self.n_feas), df_sm[-1, :], kind="cubic")
 
-                dummy = ax.scatter(xn_ax, yn_cor(xn_ax), marker='o', edgecolor='none', s=marker_size,
-                                 facecolor=colors[n_class], c=colors[n_class], alpha=alpha, lw=line_width,
-                                 label=class_name)
+                dummy = ax.scatter(
+                    xn_ax,
+                    yn_cor(xn_ax),
+                    marker="o",
+                    edgecolor="none",
+                    s=marker_size,
+                    facecolor=colors[n_class],
+                    c=colors[n_class],
+                    alpha=alpha,
+                    lw=line_width,
+                    label=class_name,
+                )
 
                 if show_intervals:
 
-                    ax.fill_between(xn_ax, df_sm_u_int(xn_ax)-(2*df_sm_std_int(xn_ax)),
-                                     df_sm_u_int(xn_ax)+(2*df_sm_std_int(xn_ax)), color=colors[n_class], alpha=.1)
+                    ax.fill_between(
+                        xn_ax,
+                        df_sm_u_int(xn_ax) - (2 * df_sm_std_int(xn_ax)),
+                        df_sm_u_int(xn_ax) + (2 * df_sm_std_int(xn_ax)),
+                        color=colors[n_class],
+                        alpha=0.1,
+                    )
 
             else:
 
-                dummy = ax.scatter(range(len(df_sm[r])), df_sm[r], marker='o', edgecolor='none', s=marker_size,
-                                 facecolor=colors[n_class], c=colors[n_class], alpha=alpha, lw=line_width,
-                                 label=class_name)
+                dummy = ax.scatter(
+                    range(len(df_sm[r])),
+                    df_sm[r],
+                    marker="o",
+                    edgecolor="none",
+                    s=marker_size,
+                    facecolor=colors[n_class],
+                    c=colors[n_class],
+                    alpha=alpha,
+                    lw=line_width,
+                    label=class_name,
+                )
 
                 if show_intervals:
 
-                    ax.fill_between(range(len(df_sm_u)), df_sm_u-(2*df_sm_std), df_sm_u+(2*df_sm_std),
-                                    color=colors[n_class], alpha=.1)
+                    ax.fill_between(
+                        range(len(df_sm_u)),
+                        df_sm_u - (2 * df_sm_std),
+                        df_sm_u + (2 * df_sm_std),
+                        color=colors[n_class],
+                        alpha=0.1,
+                    )
 
             leg_items.append(dummy)
 
-            plt.ylabel('Value')
+            plt.ylabel("Value")
             # plt.ylabel('Feature: %d' % fea_2)
 
             # ax.set_xlabel('Feature: %d')
@@ -2778,11 +3456,16 @@ class Visualization(object):
 
         limits = False
 
-        leg = plt.legend(tuple(leg_items), tuple(class_names_list), scatterpoints=1, loc='lower left',
-                         markerscale=marker_size*200)
+        leg = plt.legend(
+            tuple(leg_items),
+            tuple(class_names_list),
+            scatterpoints=1,
+            loc="lower left",
+            markerscale=marker_size * 200,
+        )
 
-        leg.get_frame().set_edgecolor('#D8D8D8')
-        leg.get_frame().set_linewidth(.5)
+        leg.get_frame().set_edgecolor("#D8D8D8")
+        leg.get_frame().set_linewidth(0.5)
 
         if xaxis_labs:
 
@@ -2814,46 +3497,45 @@ class Visualization(object):
     #
     #     df = pd.DataFrame(in_block)
     #
-        # linear interpolation along the x axis (layers)
-        # df = df.apply(pd.Series.interpolate, axis=1).values.astype(np.float32)
-        # df = df.apply(pd.Series.interpolate, axis=1)
+    # linear interpolation along the x axis (layers)
+    # df = df.apply(pd.Series.interpolate, axis=1).values.astype(np.float32)
+    # df = df.apply(pd.Series.interpolate, axis=1)
 
-        # rolling mean along the x axis and converted to ndarray
-        # df = pd.rolling_median(df, window=window_size, axis=1).values
-        # df = mp.rolling_stats(df, stat='median', window_size=window_size)
+    # rolling mean along the x axis and converted to ndarray
+    # df = pd.rolling_median(df, window=window_size, axis=1).values
+    # df = mp.rolling_stats(df, stat='median', window_size=window_size)
 
-        # # fill the first two columns
-        # if window_size == 3:
-        #
-        #     # df[:, 0] = np.median(df[:, :window_size-1], axis=1)
-        #     # df[:, 1] = np.median(df[:, :window_size], axis=1)
-        #     # df[:, -1] = np.median(df[:, -window_size:], axis=1)
-        #     # df[:, -2] = np.median(df[:, -window_size-1:], axis=1)
-        #
-        #     df[:, 0] = np.median(df[:, :window_size-1+(window_size/2)], axis=1)
-        #     df[:, 1] = np.median(df[:, :window_size+(window_size/2)], axis=1)
-        #     df[:, -1] = np.median(df[:, -window_size-(window_size/2):], axis=1)
-        #     df[:, -2] = np.median(df[:, -window_size-1-(window_size/2):], axis=1)
-        #
-        # elif window_size == 5:
-        #
-        #     df[:, 0] = np.median(df[:, :window_size-3+(window_size/2)], axis=1)
-        #     df[:, 1] = np.median(df[:, :window_size-2+(window_size/2)], axis=1)
-        #     df[:, 2] = np.median(df[:, :window_size-1+(window_size/2)], axis=1)
-        #     df[:, 3] = np.median(df[:, :window_size+(window_size/2)], axis=1)
-        #
-        #     df[:, -1] = np.median(df[:, -window_size-(window_size/2):], axis=1)
-        #     df[:, -2] = np.median(df[:, -window_size-1-(window_size/2):], axis=1)
-        #     df[:, -3] = np.median(df[:, -window_size-2-(window_size/2):], axis=1)
-        #     df[:, -4] = np.median(df[:, -window_size-3-(window_size/2):], axis=1)
+    # # fill the first two columns
+    # if window_size == 3:
+    #
+    #     # df[:, 0] = np.median(df[:, :window_size-1], axis=1)
+    #     # df[:, 1] = np.median(df[:, :window_size], axis=1)
+    #     # df[:, -1] = np.median(df[:, -window_size:], axis=1)
+    #     # df[:, -2] = np.median(df[:, -window_size-1:], axis=1)
+    #
+    #     df[:, 0] = np.median(df[:, :window_size-1+(window_size/2)], axis=1)
+    #     df[:, 1] = np.median(df[:, :window_size+(window_size/2)], axis=1)
+    #     df[:, -1] = np.median(df[:, -window_size-(window_size/2):], axis=1)
+    #     df[:, -2] = np.median(df[:, -window_size-1-(window_size/2):], axis=1)
+    #
+    # elif window_size == 5:
+    #
+    #     df[:, 0] = np.median(df[:, :window_size-3+(window_size/2)], axis=1)
+    #     df[:, 1] = np.median(df[:, :window_size-2+(window_size/2)], axis=1)
+    #     df[:, 2] = np.median(df[:, :window_size-1+(window_size/2)], axis=1)
+    #     df[:, 3] = np.median(df[:, :window_size+(window_size/2)], axis=1)
+    #
+    #     df[:, -1] = np.median(df[:, -window_size-(window_size/2):], axis=1)
+    #     df[:, -2] = np.median(df[:, -window_size-1-(window_size/2):], axis=1)
+    #     df[:, -3] = np.median(df[:, -window_size-2-(window_size/2):], axis=1)
+    #     df[:, -4] = np.median(df[:, -window_size-3-(window_size/2):], axis=1)
 
-        # df[np.isnan(df)] = 0
+    # df[np.isnan(df)] = 0
 
-        # return np.apply_along_axis(savgol_filter, 1, df, 5, 3)
-        # return df
+    # return np.apply_along_axis(savgol_filter, 1, df, 5, 3)
+    # return df
 
     def vis_k_means(self, image, bands2vis=[1, 2, 3], clusters=3):
-
         """
         Use k-means clustering to visualize data in image
 
@@ -2865,7 +3547,9 @@ class Visualization(object):
 
         # open the image
         with raster_tools.ropen(image) as i_info:
-            band_arrays = [zoom(i_info.read(bands=[bd], d_type='float32'), .5) for bd in bands2vis]
+            band_arrays = [
+                zoom(i_info.read(bands=[bd], d_type="float32"), 0.5) for bd in bands2vis
+            ]
 
         rws, cls = band_arrays[0].shape[0], band_arrays[1].shape[1]
 
@@ -2879,7 +3563,7 @@ class Visualization(object):
 
             ctr += 1
 
-        multi_d = multi_d.reshape((len(bands2vis), rws*cls)).astype(np.float32).T
+        multi_d = multi_d.reshape((len(bands2vis), rws * cls)).astype(np.float32).T
 
         # run k means clustering
         clt = KMeans(max_iter=300, n_jobs=-1, n_clusters=clusters)
@@ -2890,7 +3574,7 @@ class Visualization(object):
         bar = self._plot_colors(hst, clt.cluster_centers_)
 
         plt.figure()
-        plt.axis('off')
+        plt.axis("off")
         plt.imshow(bar)
         plt.show()
 
@@ -2904,7 +3588,7 @@ class Visualization(object):
         hist, _ = np.histogram(clt.labels_, bins=n_labels)
 
         # normalize the histogram, such that it sums to one
-        hist = hist.astype('float')
+        hist = hist.astype("float")
         hist /= hist.sum()
 
         return hist
@@ -2912,16 +3596,22 @@ class Visualization(object):
     def _plot_colors(self, hist, centroids):
 
         # initialize the bar chart representing the relative frequency of each of the colors
-        bar = np.zeros((50, 300, 3), dtype='uint8')
+        bar = np.zeros((50, 300, 3), dtype="uint8")
         start_x = 0
 
         # iterate over the percentage of each cluster and the color of each cluster
-        for (percent, color) in zip(hist, centroids):
+        for percent, color in zip(hist, centroids):
 
             # plot the relative percentage of each cluster
             end_x = start_x + (percent * 300)
 
-            cv2.rectangle(bar, (int(start_x), 0), (int(end_x), 50), color.astype('uint8').tolist(), -1)
+            cv2.rectangle(
+                bar,
+                (int(start_x), 0),
+                (int(end_x), 50),
+                color.astype("uint8").tolist(),
+                -1,
+            )
 
             start_x = end_x
 
@@ -2929,14 +3619,12 @@ class Visualization(object):
 
 
 class Preprocessing(object):
-
     """A class for data preprocessing"""
 
     def __init__(self):
         self.time_stamp = time.asctime(time.localtime(time.time()))
 
-    def compare_features(self, f1, f2, method='mahalanobis'):
-
+    def compare_features(self, f1, f2, method="mahalanobis"):
         """
         Compares features (within samples) using distance-based methods
 
@@ -2946,23 +3634,38 @@ class Preprocessing(object):
             method (Optional[str]): The distance method to use. Default is 'mahalanobis'.
         """
 
-        dist_methods = dict(mahalanobis=sci_dist.mahalanobis,
-                            correlation=sci_dist.correlation,
-                            euclidean=sci_dist.euclidean)
+        dist_methods = dict(
+            mahalanobis=sci_dist.mahalanobis,
+            correlation=sci_dist.correlation,
+            euclidean=sci_dist.euclidean,
+        )
 
-        if method == 'mahalanobis':
+        if method == "mahalanobis":
 
-            return dist_methods[method](self.p_vars[f1-1], self.p_vars[f2-1], np.linalg.cov(self.p_vars[f1-1],
-                                                                                            self.p_vars[f2-1],
-                                                                                            rowvar=0))
+            return dist_methods[method](
+                self.p_vars[f1 - 1],
+                self.p_vars[f2 - 1],
+                np.linalg.cov(self.p_vars[f1 - 1], self.p_vars[f2 - 1], rowvar=0),
+            )
 
         else:
-            return dist_methods[method](self.p_vars[f1-1], self.p_vars[f2-1])
+            return dist_methods[method](self.p_vars[f1 - 1], self.p_vars[f2 - 1])
 
-    def compare_samples(self, base_samples, compare_samples, output, id_label='Id', y_label='Y',
-                        response_label='response', dist_threshold=500, pct_threshold=.75,
-                        replaced_weight=2, semi_supervised=False, spatial_weights=False, add2base=False):
-
+    def compare_samples(
+        self,
+        base_samples,
+        compare_samples,
+        output,
+        id_label="Id",
+        y_label="Y",
+        response_label="response",
+        dist_threshold=500,
+        pct_threshold=0.75,
+        replaced_weight=2,
+        semi_supervised=False,
+        spatial_weights=False,
+        add2base=False,
+    ):
         """
         Compares features (between samples) and removes samples
 
@@ -2995,16 +3698,16 @@ class Preprocessing(object):
 
         weights = None
 
-        df_base = pd.read_csv(base_samples, sep=',')
-        df_compare = pd.read_csv(compare_samples, sep=',')
+        df_base = pd.read_csv(base_samples, sep=",")
+        df_compare = pd.read_csv(compare_samples, sep=",")
 
         # Load sample weights.
-        if os.path.isfile(base_samples.replace('.txt', '_w.txt')):
+        if os.path.isfile(base_samples.replace(".txt", "_w.txt")):
 
-            weights = PickleIt.load(base_samples.replace('.txt', '_w.txt'))
+            weights = PickleIt.load(base_samples.replace(".txt", "_w.txt"))
 
             if isinstance(weights, list):
-                weights = np.array(weights, dtype='float32')
+                weights = np.array(weights, dtype="float32")
 
         # Reset the ids in case of stacked samples.
         df_base[id_label] = list(range(1, df_base.shape[0] + 1))
@@ -3012,74 +3715,96 @@ class Preprocessing(object):
 
         all_headers = df_base.columns.values.tolist()
 
-        leaders = all_headers[all_headers.index(id_label):all_headers.index(y_label) + 1]
+        leaders = all_headers[
+            all_headers.index(id_label) : all_headers.index(y_label) + 1
+        ]
 
-        headers = all_headers[all_headers.index(y_label) + 1:all_headers.index(response_label)]
+        headers = all_headers[
+            all_headers.index(y_label) + 1 : all_headers.index(response_label)
+        ]
 
-        added_headers = ('_y,'.format(headers[0]).join(headers) + '_y').split(',')
+        added_headers = ("_y,".format(headers[0]).join(headers) + "_y").split(",")
 
         df_base.rename(columns=dict(zip(headers, added_headers)), inplace=True)
 
         if isinstance(weights, np.ndarray):
 
-            df_base['WEIGHT'] = weights
+            df_base["WEIGHT"] = weights
 
-            df = pd.merge(df_compare, df_base[[id_label] + added_headers + ['WEIGHT']], on=id_label, how='inner')
+            df = pd.merge(
+                df_compare,
+                df_base[[id_label] + added_headers + ["WEIGHT"]],
+                on=id_label,
+                how="inner",
+            )
 
         else:
             # Merge column-wise, with 'compare samples' first, then 'base samples'
-            df = pd.merge(df_compare, df_base[[id_label] + added_headers], on=id_label, how='inner')
+            df = pd.merge(
+                df_compare,
+                df_base[[id_label] + added_headers],
+                on=id_label,
+                how="inner",
+            )
 
         if spatial_weights:
 
-            self.index_samples(df.query('WEIGHT == 1'))
+            self.index_samples(df.query("WEIGHT == 1"))
 
-            dist_weights = self.weight_samples(df.query('WEIGHT == 1'), df.query('WEIGHT != 1'))
+            dist_weights = self.weight_samples(
+                df.query("WEIGHT == 1"), df.query("WEIGHT != 1")
+            )
 
             # Calculate the inverse distance
-            df.loc[df['WEIGHT'] != 1, 'WEIGHT'] = 1. - (dist_weights['SP_DIST'] / dist_weights['SP_DIST'].max())
+            df.loc[df["WEIGHT"] != 1, "WEIGHT"] = 1.0 - (
+                dist_weights["SP_DIST"] / dist_weights["SP_DIST"].max()
+            )
 
         def e_dist(d, h1, h2):
-            return (d[h1] - d[h2]) ** 2.
+            return (d[h1] - d[h2]) ** 2.0
 
-        df['COUNT'] = 0
+        df["COUNT"] = 0
 
         # Iterate over each image variable and
         #   calculate the euclidean distance.
         for compare_header, base_header in zip(headers, added_headers):
 
-            df['DIST'] = e_dist(df, compare_header, base_header)
+            df["DIST"] = e_dist(df, compare_header, base_header)
 
-            df.loc[df['DIST'] < dist_threshold, 'COUNT'] += 1
+            df.loc[df["DIST"] < dist_threshold, "COUNT"] += 1
 
         if semi_supervised:
 
             # Add unlabeled values to samples with high distance values.
-            df.loc[df['COUNT'] < int(pct_threshold * len(headers)), 'response'] = -1
+            df.loc[df["COUNT"] < int(pct_threshold * len(headers)), "response"] = -1
 
             # Semi-supervised learning.
-            label_spread = label_propagation.LabelSpreading(kernel='rbf')
-            label_spread.fit(df[headers], df['response'])
+            label_spread = label_propagation.LabelSpreading(kernel="rbf")
+            label_spread.fit(df[headers], df["response"])
 
             # Replace the high distance samples' unlabeled responses.
-            df.loc[df['COUNT'] < int(pct_threshold * len(headers)), 'response'] = label_spread.transduction_
+            df.loc[df["COUNT"] < int(pct_threshold * len(headers)), "response"] = (
+                label_spread.transduction_
+            )
 
         else:
-            df = df.query('COUNT >= {:d}'.format(int(pct_threshold * len(headers))))
+            df = df.query("COUNT >= {:d}".format(int(pct_threshold * len(headers))))
 
         # Copy the 'base samples' weights and add new weights
         if isinstance(weights, np.ndarray):
 
-            weights_out = df['WEIGHT'].values
+            weights_out = df["WEIGHT"].values
             weights_out = np.where(weights_out == 1, replaced_weight, weights_out)
 
         # Get the 'compare sample' image variables.
-        df = df[leaders + headers + ['response']]
+        df = df[leaders + headers + ["response"]]
 
         if add2base:
 
             # Add the original column names back.
-            df_base = df_base.rename(columns=dict(zip(added_headers, headers)))[leaders + headers + ['response']]
+            df_base = df_base.rename(columns=dict(zip(added_headers, headers)))[
+                leaders + headers + ["response"]
+            ]
 
             # Concatenate the base samples with the new samples.
             df = pd.concat([df_base, df], axis=0)
@@ -3091,23 +3816,22 @@ class Preprocessing(object):
 
                 assert df.shape[0] == len(weights_out)
 
-        logger.info('  Base samples: {:,d}'.format(df_base.shape[0]))
-        logger.info('  New samples: {:,d}'.format(df.shape[0]))
+        logger.info("  Base samples: {:,d}".format(df_base.shape[0]))
+        logger.info("  New samples: {:,d}".format(df.shape[0]))
 
         if os.path.isfile(output):
             os.remove(output)
 
-        df.to_csv(output, sep=',', index=False)
+        df.to_csv(output, sep=",", index=False)
 
-        if os.path.isfile(base_samples.replace('.txt', '_w.txt')):
+        if os.path.isfile(base_samples.replace(".txt", "_w.txt")):
 
-            if os.path.isfile(compare_samples.replace('.txt', '_w.txt')):
-                os.remove(compare_samples.replace('.txt', '_w.txt'))
+            if os.path.isfile(compare_samples.replace(".txt", "_w.txt")):
+                os.remove(compare_samples.replace(".txt", "_w.txt"))
 
-            PickleIt.dump(weights_out, compare_samples.replace('.txt', '_w.txt'))
+            PickleIt.dump(weights_out, compare_samples.replace(".txt", "_w.txt"))
 
-    def _index_samples(self, base_samples, x_label='X', y_label='Y'):
-
+    def _index_samples(self, base_samples, x_label="X", y_label="Y"):
         """
         Indexes samples into a RTree database
 
@@ -3123,17 +3847,18 @@ class Preprocessing(object):
             x = float(df_row[x_label])
             y = float(df_row[y_label])
 
-            self.rtree_index.insert(int(df_row['UNQ']), (x, y))
+            self.rtree_index.insert(int(df_row["UNQ"]), (x, y))
 
-    def weight_samples(self,
-                       df_samples,
-                       base_query,
-                       compare_query,
-                       id_label='Id',
-                       x_label='X',
-                       y_label='Y',
-                       w_label='WEIGHT'):
-
+    def weight_samples(
+        self,
+        df_samples,
+        base_query,
+        compare_query,
+        id_label="Id",
+        x_label="X",
+        y_label="Y",
+        w_label="WEIGHT",
+    ):
         """
         Weights samples by inverse euclidean distance
 
@@ -3168,14 +3893,13 @@ class Preprocessing(object):
         base_samples = df_samples.query(base_query)
         compare_samples = df_samples.query(compare_query)
 
-        base_samples['UNQ'] = list(range(0, base_samples.shape[0]))
-        compare_samples['UNQ'] = list(range(0, compare_samples.shape[0]))
+        base_samples["UNQ"] = list(range(0, base_samples.shape[0]))
+        compare_samples["UNQ"] = list(range(0, compare_samples.shape[0]))
 
         # Create a RTree indexer.
-        self._index_samples(base_samples,
-                            id_label=id_label,
-                            x_label=x_label,
-                            y_label=y_label)
+        self._index_samples(
+            base_samples, id_label=id_label, x_label=x_label, y_label=y_label
+        )
 
         sp_dists = list()
 
@@ -3190,22 +3914,22 @@ class Preprocessing(object):
             n_sample_id = list(self.rtree_index.nearest((x1, y1), 1))
 
             # Get the base sample x and y coordinates.
-            x2 = float(base_samples.loc[base_samples['UNQ'] == n_sample_id[0], x_label])
-            y2 = float(base_samples.loc[base_samples['UNQ'] == n_sample_id[0], y_label])
+            x2 = float(base_samples.loc[base_samples["UNQ"] == n_sample_id[0], x_label])
+            y2 = float(base_samples.loc[base_samples["UNQ"] == n_sample_id[0], y_label])
 
             # Calculate the euclidean distance
             #   between the two samples.
             sp_dists.append(sci_dist.euclidean([x1, y1], [x2, y2]))
 
-        compare_samples['SP_DIST'] = sp_dists
+        compare_samples["SP_DIST"] = sp_dists
 
-        df_samples.loc[df_samples[w_label] != 1, w_label] = \
-            1. - (compare_samples['SP_DIST'] / compare_samples['SP_DIST'].max())
+        df_samples.loc[df_samples[w_label] != 1, w_label] = 1.0 - (
+            compare_samples["SP_DIST"] / compare_samples["SP_DIST"].max()
+        )
 
         return df_samples
 
-    def remove_outliers(self, outliers_fraction=.25, locate_only=False):
-
+    def remove_outliers(self, outliers_fraction=0.25, locate_only=False):
         """
         Removes outliers from each class by fitting an Elliptic Envelope
 
@@ -3234,7 +3958,7 @@ class Preprocessing(object):
 
         if not self.scaled:
 
-            logger.error('  The data should be scaled prior to outlier removal.')
+            logger.error("  The data should be scaled prior to outlier removal.")
             raise NameError
 
         self.outliers_fraction = outliers_fraction
@@ -3242,19 +3966,23 @@ class Preprocessing(object):
         # xx, yy = np.meshgrid(np.linspace(-7, 7, self.n_samps*self.n_feas),
         #                      np.linspace(-7, 7, self.n_samps*self.n_feas))
 
-        new_p_vars = np.empty((0, self.n_feas), dtype='float32')
-        new_labels = np.array([], dtype='int16')
+        new_p_vars = np.empty((0, self.n_feas), dtype="float32")
+        new_labels = np.array([], dtype="int16")
 
         self.class_outliers = {}
 
         for check_class in self.classes:
 
-            logger.info('  Class {:d} ...'.format(check_class))
+            logger.info("  Class {:d} ...".format(check_class))
 
             try:
-                new_p_vars, new_labels = self._remove_outliers(check_class, new_p_vars, new_labels)
+                new_p_vars, new_labels = self._remove_outliers(
+                    check_class, new_p_vars, new_labels
+                )
             except:
-                logger.error('  Could not fit the data for class {:d}'.format(check_class))
+                logger.error(
+                    "  Could not fit the data for class {:d}".format(check_class)
+                )
                 raise RuntimeError
 
         if not locate_only:
@@ -3274,7 +4002,7 @@ class Preprocessing(object):
         temp_labels = self.labels[class_idx]
 
         # outlier detection
-        outlier_clf = EllipticEnvelope(contamination=.1)
+        outlier_clf = EllipticEnvelope(contamination=0.1)
 
         try:
             outlier_clf.fit(temp_p_vars)
@@ -3287,7 +4015,7 @@ class Preprocessing(object):
 
         y_pred = outlier_clf.decision_function(temp_p_vars).ravel()
 
-        threshold = stats.scoreatpercentile(y_pred, 100. * self.outliers_fraction)
+        threshold = stats.scoreatpercentile(y_pred, 100.0 * self.outliers_fraction)
 
         inlier_idx = np.where(y_pred >= threshold)
         outlier_idx = np.where(y_pred < threshold)
@@ -3296,27 +4024,30 @@ class Preprocessing(object):
 
         n_outliers = len(y_pred) - len(inlier_idx[0])
 
-        logger.info('  {:d} outliers in class {:d}'.format(n_outliers, check_class))
+        logger.info("  {:d} outliers in class {:d}".format(n_outliers, check_class))
 
         # temp_p_vars = temp_p_vars[inlier_idx]
 
         temp_labels = temp_labels[inlier_idx]
 
         # update the features
-        new_p_vars = np.vstack((new_p_vars, self.p_vars_original[class_idx][inlier_idx]))
+        new_p_vars = np.vstack(
+            (new_p_vars, self.p_vars_original[class_idx][inlier_idx])
+        )
 
         # update the labels
         new_labels = np.concatenate((new_labels, temp_labels))
 
         return new_p_vars, new_labels
 
-    def semi_supervised(self,
-                        label_method='propagate',
-                        var_array=None,
-                        lab_array=None,
-                        sub_idx=None,
-                        **kwargs):
-
+    def semi_supervised(
+        self,
+        label_method="propagate",
+        var_array=None,
+        lab_array=None,
+        sub_idx=None,
+        **kwargs
+    ):
         """
         Predict class values of unlabeled samples
 
@@ -3348,13 +4079,13 @@ class Preprocessing(object):
 
             if isinstance(var_array, np.ndarray):
 
-                var_array = var_array[np.array(sorted(sub_idx), dtype='int64')]
-                lab_array = lab_array[np.array(sorted(sub_idx), dtype='int64')]
+                var_array = var_array[np.array(sorted(sub_idx), dtype="int64")]
+                lab_array = lab_array[np.array(sorted(sub_idx), dtype="int64")]
 
             else:
 
-                var_array = self.p_vars[np.array(sorted(sub_idx), dtype='int64')]
-                lab_array = self.labels[np.array(sorted(sub_idx), dtype='int64')]
+                var_array = self.p_vars[np.array(sorted(sub_idx), dtype="int64")]
+                lab_array = self.labels[np.array(sorted(sub_idx), dtype="int64")]
 
         else:
 
@@ -3365,7 +4096,7 @@ class Preprocessing(object):
 
         unlabeled_idx = np.where(lab_array == -1)
 
-        if label_method == 'propagate':
+        if label_method == "propagate":
             ss_model = label_propagation.LabelPropagation(**kwargs)
         else:
             ss_model = label_propagation.LabelSpreading(**kwargs)
@@ -3529,7 +4260,6 @@ class ModelOptions(object):
 
 
 class VotingClassifier(BaseEstimator, ClassifierMixin):
-
     """
     A voting classifier class to use prefit models instead of re-fitting
 
@@ -3554,14 +4284,16 @@ class VotingClassifier(BaseEstimator, ClassifierMixin):
             self.classes_ = classes
 
         if isinstance(self.weights, list):
-            self.weights = np.array(self.weights, dtype='float32')
+            self.weights = np.array(self.weights, dtype="float32")
 
         if self.weights is None:
-            self.weights = np.ones(len(self.estimators), dtype='float32')
+            self.weights = np.ones(len(self.estimators), dtype="float32")
 
         if len(self.weights) != len(self.estimators):
 
-            logger.error('  The length of the weights must match the length of the estimators.')
+            logger.error(
+                "  The length of the weights must match the length of the estimators."
+            )
             raise ArrayShapeError
 
         if isinstance(self.classes_, np.ndarray) or isinstance(self.classes_, list):
@@ -3570,7 +4302,6 @@ class VotingClassifier(BaseEstimator, ClassifierMixin):
             self.n_classes_ = 0
 
     def predict(self, X):
-
         """
         Predicts discrete classes by soft probability averaging
 
@@ -3581,7 +4312,7 @@ class VotingClassifier(BaseEstimator, ClassifierMixin):
         # Get predictions as an index of the array position.
         probabilities_argmax = np.argmax(self.predict_proba(X), axis=1)
 
-        predictions = np.zeros(probabilities_argmax.shape, dtype='int16')
+        predictions = np.zeros(probabilities_argmax.shape, dtype="int16")
 
         # Convert indices to classes.
         for class_index, real_class in enumerate(self.classes_):
@@ -3590,7 +4321,6 @@ class VotingClassifier(BaseEstimator, ClassifierMixin):
         return predictions
 
     def predict_proba(self, X):
-
         """
         Predicts class posterior probabilities by soft probability averaging
 
@@ -3611,7 +4341,6 @@ class VotingClassifier(BaseEstimator, ClassifierMixin):
 
 
 class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualization):
-
     """
     A class for image sampling and classification
 
@@ -3649,32 +4378,33 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
     def copy(self):
         return copy(self)
 
-    def construct_model(self,
-                        input_model=None,
-                        output_model=None,
-                        classifier_info=None,
-                        class_weight=None,
-                        var_imp=True,
-                        rank_method=None,
-                        top_feas=0.5,
-                        get_probs=False,
-                        input_image=None,
-                        in_shapefile=None,
-                        out_stats=None,
-                        stats_from_image=False,
-                        calibrate_proba=False,
-                        calibrate_test=None,
-                        calibrate_labels=None,
-                        calibrate_weights=None,
-                        be_quiet=False,
-                        compress_model=False,
-                        view_calibration=None,
-                        fig_location=None,
-                        feature_list=None,
-                        append_features=False,
-                        ts_indices=None,
-                        func_applier=None):
-
+    def construct_model(
+        self,
+        input_model=None,
+        output_model=None,
+        classifier_info=None,
+        class_weight=None,
+        var_imp=True,
+        rank_method=None,
+        top_feas=0.5,
+        get_probs=False,
+        input_image=None,
+        in_shapefile=None,
+        out_stats=None,
+        stats_from_image=False,
+        calibrate_proba=False,
+        calibrate_test=None,
+        calibrate_labels=None,
+        calibrate_weights=None,
+        be_quiet=False,
+        compress_model=False,
+        view_calibration=None,
+        fig_location=None,
+        feature_list=None,
+        append_features=False,
+        ts_indices=None,
+        func_applier=None,
+    ):
         """
         Loads, trains, and saves a predictive model.
 
@@ -3794,7 +4524,9 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             if not isinstance(self.fig_location, str):
 
-                logger.error('  The output figure location must be given with `view_calibration`.')
+                logger.error(
+                    "  The output figure location must be given with `view_calibration`."
+                )
                 raise TypeError
 
             if not os.path.isdir(self.fig_location):
@@ -3804,22 +4536,26 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             if not os.path.isfile(self.input_model):
 
-                logger.exception('  {} does not exist.'.format(self.input_model))
+                logger.exception("  {} does not exist.".format(self.input_model))
                 raise OSError
 
         if not isinstance(self.input_model, str):
 
             # check that the model is valid
-            if 'classifier' not in self.classifier_info:
+            if "classifier" not in self.classifier_info:
 
-                logger.exception('  The model must be declared.')
+                logger.exception("  The model must be declared.")
                 raise ValueError
 
-            if not isinstance(self.classifier_info['classifier'], list):
+            if not isinstance(self.classifier_info["classifier"], list):
 
-                if self.classifier_info['classifier'] not in get_available_models():
+                if self.classifier_info["classifier"] not in get_available_models():
 
-                    logger.exception('  {} is not a model option.'.format(self.classifier_info['classifier']))
+                    logger.exception(
+                        "  {} is not a model option.".format(
+                            self.classifier_info["classifier"]
+                        )
+                    )
                     raise NameError
 
         if isinstance(self.output_model, str):
@@ -3828,18 +4564,18 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             f_base, f_ext = os.path.splitext(f_name)
 
             if not d_name and not os.path.isabs(f_name):
-                d_name = os.path.abspath('.')
+                d_name = os.path.abspath(".")
 
-            self.out_acc = os.path.join(d_name, '{}_acc.txt'.format(f_base))
+            self.out_acc = os.path.join(d_name, "{}_acc.txt".format(f_base))
 
             if os.path.isfile(self.out_acc):
                 os.remove(self.out_acc)
 
-            if 'CV' in self.classifier_info['classifier']:
+            if "CV" in self.classifier_info["classifier"]:
 
-                if 'xml' not in f_ext.lower():
+                if "xml" not in f_ext.lower():
 
-                    logger.error('  The output model for OpenCV models must be XML.')
+                    logger.error("  The output model for OpenCV models must be XML.")
                     raise TypeError
 
             if not os.path.isdir(d_name):
@@ -3855,39 +4591,54 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             # Get the proportion of samples for each class.
             for class_value in self.classes:
-                class_proportions[class_value] = class_counts_ordered[class_value] / float(self.n_samps)
+                class_proportions[class_value] = class_counts_ordered[
+                    class_value
+                ] / float(self.n_samps)
 
                 # len(np.array(self.classes)[np.where(np.array(self.classes) == class_value)]) / float(len(self.classes))
 
-            if self.class_weight == 'inverse':
+            if self.class_weight == "inverse":
 
                 # rank self.class_counts from smallest to largest
-                class_counts_ordered = OrderedDict(sorted(list(iteritems(class_counts_ordered)), key=lambda t: t[1]))
+                class_counts_ordered = OrderedDict(
+                    sorted(list(iteritems(class_counts_ordered)), key=lambda t: t[1])
+                )
 
                 # rank class_proportions from largest to smallest
-                class_proportions = OrderedDict(sorted(list(iteritems(class_proportions)),
-                                                       key=lambda t: t[1],
-                                                       reverse=True))
+                class_proportions = OrderedDict(
+                    sorted(
+                        list(iteritems(class_proportions)),
+                        key=lambda t: t[1],
+                        reverse=True,
+                    )
+                )
 
                 # swap the proportions of the largest class counts to the smallest
 
                 self.class_weight = dict()
 
-                for (k1, v1), (k2, v2) in zip(list(iteritems(class_counts_ordered)), list(iteritems(class_proportions))):
+                for (k1, v1), (k2, v2) in zip(
+                    list(iteritems(class_counts_ordered)),
+                    list(iteritems(class_proportions)),
+                ):
                     self.class_weight[k1] = v2
 
-                if 'CV' in self.classifier_info['classifier']:
-                    self.class_weight = np.array(itervalues(self.class_weight), dtype='float32')
+                if "CV" in self.classifier_info["classifier"]:
+                    self.class_weight = np.array(
+                        itervalues(self.class_weight), dtype="float32"
+                    )
 
-            elif self.class_weight == 'percent':
+            elif self.class_weight == "percent":
 
-                if 'CV' in self.classifier_info['classifier']:
-                    self.class_weight = np.array(itervalues(class_proportions), dtype='float32')
+                if "CV" in self.classifier_info["classifier"]:
+                    self.class_weight = np.array(
+                        itervalues(class_proportions), dtype="float32"
+                    )
                 else:
                     self.class_weight = class_proportions
 
             else:
-                logger.error('  The weight method is not supported.')
+                logger.error("  The weight method is not supported.")
                 raise NameError
 
         if isinstance(self.input_model, str):
@@ -3906,35 +4657,43 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 if not self.ts_indices:
 
                     if self.use_xy:
-                        self.ts_indices = np.array(range(0, self.p_vars.shape[1]-2), dtype='int64')
+                        self.ts_indices = np.array(
+                            range(0, self.p_vars.shape[1] - 2), dtype="int64"
+                        )
 
                 # logger.info(self.p_vars.shape[1])
                 # logger.info(self.p_vars_test.shape[1])
                 # logger.info(self.calibrate_test.shape[1])
                 # logger.info(ts_indices.shape)
 
-                self.p_vars = self.feature_object.apply_features(X=self.p_vars,
-                                                                 ts_indices=self.ts_indices,
-                                                                 append_features=self.append_features)
+                self.p_vars = self.feature_object.apply_features(
+                    X=self.p_vars,
+                    ts_indices=self.ts_indices,
+                    append_features=self.append_features,
+                )
 
                 if isinstance(self.p_vars_test, np.ndarray):
 
-                    self.p_vars_test = self.feature_object.apply_features(X=self.p_vars_test,
-                                                                          ts_indices=self.ts_indices,
-                                                                          append_features=self.append_features)
+                    self.p_vars_test = self.feature_object.apply_features(
+                        X=self.p_vars_test,
+                        ts_indices=self.ts_indices,
+                        append_features=self.append_features,
+                    )
 
                 if isinstance(self.calibrate_test, np.ndarray):
 
-                    self.calibrate_test = self.feature_object.apply_features(X=self.calibrate_test,
-                                                                             ts_indices=self.ts_indices,
-                                                                             append_features=self.append_features)
+                    self.calibrate_test = self.feature_object.apply_features(
+                        X=self.calibrate_test,
+                        ts_indices=self.ts_indices,
+                        append_features=self.append_features,
+                    )
 
                 self._add_features = True
 
-                self.sample_info_dict['n_feas'] = self.p_vars.shape[1]
+                self.sample_info_dict["n_feas"] = self.p_vars.shape[1]
 
-            self.sample_info_dict['add_features'] = self._add_features
-            self.sample_info_dict['feature_object'] = self.feature_object
+            self.sample_info_dict["add_features"] = self._add_features
+            self.sample_info_dict["feature_object"] = self.feature_object
 
             # Set the model parameters.
             self._default_parameters()
@@ -3942,7 +4701,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             # the model instance
             self._set_model()
 
-            if self.classifier_info['classifier'] != 'ORRF':
+            if self.classifier_info["classifier"] != "ORRF":
 
                 # get model parameters
                 if not self.get_probs:
@@ -3952,18 +4711,17 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 self._train_model()
 
     def _load_model(self):
-
         """Loads a previously saved model"""
 
-        logger.info('  Loading {} ...'.format(self.input_model))
+        logger.info("  Loading {} ...".format(self.input_model))
 
-        if '.xml' in self.input_model:
+        if ".xml" in self.input_model:
 
             # first load the parameters
             try:
                 self.classifier_info, __ = self.load(self.input_model)
             except:
-                logger.error('  Could not load {}'.format(self.input_model))
+                logger.error("  Could not load {}".format(self.input_model))
                 raise OSError
 
             # load the correct model
@@ -3974,7 +4732,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 self.model.load(self.input_model)
             except:
 
-                logger.error('  Could not load {}'.format(self.input_model))
+                logger.error("  Could not load {}".format(self.input_model))
                 raise OSError
 
         else:
@@ -3983,56 +4741,62 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             try:
 
                 # self.classifier_info, self.model = self.load(self.input_model)
-                self.classifier_info, self.model, self.sample_info_dict = joblib.load(self.input_model)
+                self.classifier_info, self.model, self.sample_info_dict = joblib.load(
+                    self.input_model
+                )
 
-                self.n_feas = self.sample_info_dict['n_feas']
-                self.scaler = self.sample_info_dict['scaler']
-                self.scaled = self.sample_info_dict['scaled']
-                self.use_xy = self.sample_info_dict['use_xy']
-                self._add_features = self.sample_info_dict['add_features']
-                self.feature_object = self.sample_info_dict['feature_object']
+                self.n_feas = self.sample_info_dict["n_feas"]
+                self.scaler = self.sample_info_dict["scaler"]
+                self.scaled = self.sample_info_dict["scaled"]
+                self.use_xy = self.sample_info_dict["use_xy"]
+                self._add_features = self.sample_info_dict["add_features"]
+                self.feature_object = self.sample_info_dict["feature_object"]
 
             except:
-                logger.exception('  Could not load {}'.format(self.input_model))
+                logger.exception("  Could not load {}".format(self.input_model))
 
     def _default_parameters(self):
-        
         """Sets model parameters"""
 
-        if isinstance(self.classifier_info['classifier'], list):
+        if isinstance(self.classifier_info["classifier"], list):
             return
 
-        defaults_ = dict(n_estimators=100,
-                         trials=10,
-                         max_depth=25,
-                         min_samples_split=2,
-                         min_samples_leaf=5,
-                         learning_rate=0.1,
-                         C=1.0,
-                         nu=0.5,
-                         kernel='rbf',
-                         n_jobs=-1)
+        defaults_ = dict(
+            n_estimators=100,
+            trials=10,
+            max_depth=25,
+            min_samples_split=2,
+            min_samples_leaf=5,
+            learning_rate=0.1,
+            C=1.0,
+            nu=0.5,
+            kernel="rbf",
+            n_jobs=-1,
+        )
 
         # Check if model parameters are set,
         #   otherwise, set defaults.
 
-        if 'classifier' not in self.classifier_info:
-            self.classifier_info['classifier'] = 'rf'
+        if "classifier" not in self.classifier_info:
+            self.classifier_info["classifier"] = "rf"
 
         # Models with base estimators
-        if self.classifier_info['classifier'].startswith('ab-') or \
-                self.classifier_info['classifier'].startswith('bag-') or \
-                (self.classifier_info['classifier'] in ['blag', 'blab']):
+        if (
+            self.classifier_info["classifier"].startswith("ab-")
+            or self.classifier_info["classifier"].startswith("bag-")
+            or (self.classifier_info["classifier"] in ["blag", "blab"])
+        ):
 
-            class_base = copy(self.classifier_info['classifier'])
+            class_base = copy(self.classifier_info["classifier"])
 
-            self.classifier_info['classifier'] = \
-                self.classifier_info['classifier'][self.classifier_info['classifier'].find('-')+1:]
+            self.classifier_info["classifier"] = self.classifier_info["classifier"][
+                self.classifier_info["classifier"].find("-") + 1 :
+            ]
 
         else:
-            class_base = 'none'
+            class_base = "none"
 
-        vp = ParameterHandler(self.classifier_info['classifier'])
+        vp = ParameterHandler(self.classifier_info["classifier"])
 
         # Check the parameters.
         self.classifier_info_ = copy(self.classifier_info)
@@ -4040,122 +4804,144 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
         # Create a separate instance for
         #   AdaBoost and Bagging base classifiers.
-        if class_base.startswith('ab-') or class_base.startswith('bag-') or (class_base in ['blag', 'blab']):
+        if (
+            class_base.startswith("ab-")
+            or class_base.startswith("bag-")
+            or (class_base in ["blag", "blab"])
+        ):
 
             self.classifier_info_base = copy(self.classifier_info)
-            self.classifier_info_base['classifier'] = class_base
+            self.classifier_info_base["classifier"] = class_base
 
-            if 'trials' in self.classifier_info_base:
+            if "trials" in self.classifier_info_base:
 
-                self.classifier_info_base['n_estimators'] = self.classifier_info_base['trials']
-                del self.classifier_info_base['trials']
+                self.classifier_info_base["n_estimators"] = self.classifier_info_base[
+                    "trials"
+                ]
+                del self.classifier_info_base["trials"]
 
             else:
-                self.classifier_info_base['n_estimators'] = defaults_['trials']
+                self.classifier_info_base["n_estimators"] = defaults_["trials"]
 
-            vp_base = ParameterHandler(self.classifier_info_base['classifier'])
+            vp_base = ParameterHandler(self.classifier_info_base["classifier"])
 
-            self.classifier_info_base = vp_base.check_parameters(self.classifier_info_base,
-                                                                 defaults_,
-                                                                 trials_set=True)
+            self.classifier_info_base = vp_base.check_parameters(
+                self.classifier_info_base, defaults_, trials_set=True
+            )
 
-            if 'base_estimator' in self.classifier_info_base:
-                del self.classifier_info_base['base_estimator']
+            if "base_estimator" in self.classifier_info_base:
+                del self.classifier_info_base["base_estimator"]
 
-            self.classifier_info['classifier'] = class_base
+            self.classifier_info["classifier"] = class_base
 
         # Random Forest in OpenCV
-        if self.classifier_info['classifier'] == 'cvrf':
+        if self.classifier_info["classifier"] == "cvrf":
 
             if not self.input_model:
 
                 # trees
-                if 'trees' in self.classifier_info:
-                    self.classifier_info['term_crit'] = (cv2.TERM_CRITERIA_MAX_ITER,
-                                                         self.classifier_info['trees'], 0.1)
+                if "trees" in self.classifier_info:
+                    self.classifier_info["term_crit"] = (
+                        cv2.TERM_CRITERIA_MAX_ITER,
+                        self.classifier_info["trees"],
+                        0.1,
+                    )
                 else:
-                    if 'term_crit' not in self.classifier_info:
-                        self.classifier_info['term_crit'] = (cv2.TERM_CRITERIA_MAX_ITER, self.DEFAULT_TREES, 0.1)
+                    if "term_crit" not in self.classifier_info:
+                        self.classifier_info["term_crit"] = (
+                            cv2.TERM_CRITERIA_MAX_ITER,
+                            self.DEFAULT_TREES,
+                            0.1,
+                        )
 
                 # minimum node samples
-                if 'min_samps' not in self.classifier_info:
-                    self.classifier_info['min_samps'] = int(np.ceil(0.01 * self.n_samps))
+                if "min_samps" not in self.classifier_info:
+                    self.classifier_info["min_samps"] = int(
+                        np.ceil(0.01 * self.n_samps)
+                    )
 
                 # random features
-                if 'rand_vars' not in self.classifier_info:
+                if "rand_vars" not in self.classifier_info:
                     # sqrt of feature count
-                    self.classifier_info['rand_vars'] = 0
+                    self.classifier_info["rand_vars"] = 0
 
                 # maximum node depth
-                if 'max_depth' not in self.classifier_info:
-                    self.classifier_info['max_depth'] = self.DEFAULT_MAX_DEPTH
+                if "max_depth" not in self.classifier_info:
+                    self.classifier_info["max_depth"] = self.DEFAULT_MAX_DEPTH
 
-                if 'calc_var_importance' not in self.classifier_info:
-                    self.classifier_info['calc_var_importance'] = 0
+                if "calc_var_importance" not in self.classifier_info:
+                    self.classifier_info["calc_var_importance"] = 0
 
-                if 'truncate' not in self.classifier_info:
-                    self.classifier_info['truncate'] = False
+                if "truncate" not in self.classifier_info:
+                    self.classifier_info["truncate"] = False
 
-                if 'priors' not in self.classifier_info:
+                if "priors" not in self.classifier_info:
 
                     if isinstance(self.class_weight, np.ndarray):
-                        self.classifier_info['priors'] = self.class_weight
+                        self.classifier_info["priors"] = self.class_weight
                     else:
-                        self.classifier_info['priors'] = np.ones(self.n_classes, dtype='float32')
+                        self.classifier_info["priors"] = np.ones(
+                            self.n_classes, dtype="float32"
+                        )
 
             # MLP
-            elif self.classifier_info['classifier'] == 'cvmlp':
+            elif self.classifier_info["classifier"] == "cvmlp":
 
                 if not self.input_model:
 
                     # hidden nodes
                     try:
-                        __ = self.classifier_info['n_hidden']
+                        __ = self.classifier_info["n_hidden"]
                     except:
                         try:
-                            self.classifier_info['n_hidden'] = (self.n_feas + self.n_classes) / 2
+                            self.classifier_info["n_hidden"] = (
+                                self.n_feas + self.n_classes
+                            ) / 2
                         except:
-                            logger.error('  Cannot infer number of hidden nodes.')
+                            logger.error("  Cannot infer number of hidden nodes.")
                             raise ValueError
 
-        elif self.classifier_info['classifier'] in ['chaincrf', 'gridcrf']:
+        elif self.classifier_info["classifier"] in ["chaincrf", "gridcrf"]:
 
             if not PYSTRUCT_INSTALLED:
 
-                logger.warning('  Pystruct must be installed to use CRF models.\nEnsure that pystruct and cvxopt are installed.')
+                logger.warning(
+                    "  Pystruct must be installed to use CRF models.\nEnsure that pystruct and cvxopt are installed."
+                )
                 return
 
-            if 'max_iter' not in self.classifier_info_:
-                self.classifier_info_['max_iter'] = 1000
+            if "max_iter" not in self.classifier_info_:
+                self.classifier_info_["max_iter"] = 1000
 
-            if 'C' not in self.classifier_info_:
-                self.classifier_info_['C'] = 0.001
+            if "C" not in self.classifier_info_:
+                self.classifier_info_["C"] = 0.001
 
-            if 'n_jobs' not in self.classifier_info_:
-                self.classifier_info_['n_jobs'] = -1
+            if "n_jobs" not in self.classifier_info_:
+                self.classifier_info_["n_jobs"] = -1
 
-            if 'tol' not in self.classifier_info_:
-                self.classifier_info_['tol'] = 0.001
+            if "tol" not in self.classifier_info_:
+                self.classifier_info_["tol"] = 0.001
 
-            if 'inference_cache' not in self.classifier_info_:
-                self.classifier_info_['inference_cache'] = 0
+            if "inference_cache" not in self.classifier_info_:
+                self.classifier_info_["inference_cache"] = 0
 
-            if 'inference_method' not in self.classifier_info_:
-                inference_method = 'qpbo'
+            if "inference_method" not in self.classifier_info_:
+                inference_method = "qpbo"
             else:
 
-                inference_method = self.classifier_info_['inference_method']
-                del self.classifier_info_['inference_method']
+                inference_method = self.classifier_info_["inference_method"]
+                del self.classifier_info_["inference_method"]
 
-            if 'neighborhood' not in self.classifier_info_:
+            if "neighborhood" not in self.classifier_info_:
                 neighborhood = 4
             else:
 
-                neighborhood = self.classifier_info_['neighborhood']
-                del self.classifier_info_['neighborhood']
+                neighborhood = self.classifier_info_["neighborhood"]
+                del self.classifier_info_["neighborhood"]
 
-            self.grid_info = dict(inference_method=inference_method,
-                                  neighborhood=neighborhood)
+            self.grid_info = dict(
+                inference_method=inference_method, neighborhood=neighborhood
+            )
 
             # if 'break_on_bad' not in self.classifier_info_:
             #     self.classifier_info_['break_on_bad'] = True
@@ -4163,11 +4949,10 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             # self.classifier_info_['verbose'] = 1
 
     def _set_model(self):
-
         """Sets the model object"""
 
         # Create the model object.
-        if isinstance(self.classifier_info['classifier'], list):
+        if isinstance(self.classifier_info["classifier"], list):
 
             self.discrete = True
 
@@ -4176,162 +4961,219 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             classifier_list = list()
 
             ci = 0
-            for classifier in classifier_info['classifier']:
+            for classifier in classifier_info["classifier"]:
 
                 self.classifier_info = copy(classifier_info)
-                self.classifier_info['classifier'] = classifier
+                self.classifier_info["classifier"] = classifier
 
                 self._default_parameters()
 
-                if classifier == 'bayes':
+                if classifier == "bayes":
                     voting_sub_model = GaussianNB(**self.classifier_info_)
 
-                elif classifier == 'nn':
+                elif classifier == "nn":
                     voting_sub_model = KNeighborsClassifier(**self.classifier_info_)
 
-                elif classifier == 'logistic':
+                elif classifier == "logistic":
                     voting_sub_model = LogisticRegression(**self.classifier_info_)
 
-                elif classifier == 'rf':
-                    voting_sub_model = ensemble.RandomForestClassifier(**self.classifier_info_)
+                elif classifier == "rf":
+                    voting_sub_model = ensemble.RandomForestClassifier(
+                        **self.classifier_info_
+                    )
 
-                elif classifier == 'ex-rf':
-                    voting_sub_model = ensemble.ExtraTreesClassifier(**self.classifier_info_)
+                elif classifier == "ex-rf":
+                    voting_sub_model = ensemble.ExtraTreesClassifier(
+                        **self.classifier_info_
+                    )
 
-                elif classifier == 'dt':
-                    voting_sub_model = tree.DecisionTreeClassifier(**self.classifier_info_)
+                elif classifier == "dt":
+                    voting_sub_model = tree.DecisionTreeClassifier(
+                        **self.classifier_info_
+                    )
 
-                elif classifier == 'ex-dt':
+                elif classifier == "ex-dt":
                     voting_sub_model = tree.ExtraTreeClassifier(**self.classifier_info_)
 
-                elif classifier == 'ab-dt':
+                elif classifier == "ab-dt":
 
-                    voting_sub_model = ensemble.AdaBoostClassifier(base_estimator=tree.DecisionTreeClassifier(**self.classifier_info_),
-                                                                   **self.classifier_info_base)
+                    voting_sub_model = ensemble.AdaBoostClassifier(
+                        base_estimator=tree.DecisionTreeClassifier(
+                            **self.classifier_info_
+                        ),
+                        **self.classifier_info_base
+                    )
 
-                elif classifier == 'ab-rf':
+                elif classifier == "ab-rf":
 
-                    voting_sub_model = ensemble.AdaBoostClassifier(base_estimator=ensemble.RandomForestClassifier(**self.classifier_info_),
-                                                                   **self.classifier_info_base)
+                    voting_sub_model = ensemble.AdaBoostClassifier(
+                        base_estimator=ensemble.RandomForestClassifier(
+                            **self.classifier_info_
+                        ),
+                        **self.classifier_info_base
+                    )
 
-                elif classifier == 'ab-ex-rf':
+                elif classifier == "ab-ex-rf":
 
-                    voting_sub_model = ensemble.AdaBoostClassifier(base_estimator=ensemble.ExtraTreesClassifier(**self.classifier_info_),
-                                                                   **self.classifier_info_base)
+                    voting_sub_model = ensemble.AdaBoostClassifier(
+                        base_estimator=ensemble.ExtraTreesClassifier(
+                            **self.classifier_info_
+                        ),
+                        **self.classifier_info_base
+                    )
 
-                elif classifier == 'ab-ex-dt':
+                elif classifier == "ab-ex-dt":
 
-                    voting_sub_model = ensemble.AdaBoostClassifier(base_estimator=tree.ExtraTreeClassifier(**self.classifier_info_),
-                                                                   **self.classifier_info_base)
+                    voting_sub_model = ensemble.AdaBoostClassifier(
+                        base_estimator=tree.ExtraTreeClassifier(
+                            **self.classifier_info_
+                        ),
+                        **self.classifier_info_base
+                    )
 
-                elif classifier == 'bag-dt':
+                elif classifier == "bag-dt":
 
-                    voting_sub_model = ensemble.BaggingClassifier(base_estimator=tree.DecisionTreeClassifier(**self.classifier_info_),
-                                                                  **self.classifier_info_base)
+                    voting_sub_model = ensemble.BaggingClassifier(
+                        base_estimator=tree.DecisionTreeClassifier(
+                            **self.classifier_info_
+                        ),
+                        **self.classifier_info_base
+                    )
 
-                elif classifier == 'bag-ex-dt':
+                elif classifier == "bag-ex-dt":
 
-                    voting_sub_model = ensemble.BaggingClassifier(base_estimator=tree.ExtraTreeClassifier(**self.classifier_info_),
-                                                                  **self.classifier_info_base)
+                    voting_sub_model = ensemble.BaggingClassifier(
+                        base_estimator=tree.ExtraTreeClassifier(
+                            **self.classifier_info_
+                        ),
+                        **self.classifier_info_base
+                    )
 
-                elif classifier == 'blag':
+                elif classifier == "blag":
 
                     if not IMBLEARN_INSTALLED:
 
-                        logger.error("""\
+                        logger.error(
+                            """\
 
                         Imbalanced learn must be installed to use the model. Install from
                         
                         pip install imbalanced-learn
 
-                        """)
+                        """
+                        )
 
-                    voting_sub_model = imblearn.BalancedBaggingClassifier(**self.classifier_info_base)
+                    voting_sub_model = imblearn.BalancedBaggingClassifier(
+                        **self.classifier_info_base
+                    )
 
-                elif classifier == 'blaf':
+                elif classifier == "blaf":
 
                     if not IMBLEARN_INSTALLED:
 
-                        logger.error("""\
+                        logger.error(
+                            """\
 
                         Imbalanced learn must be installed to use the model. Install from
 
                         pip install imbalanced-learn
 
-                        """)
+                        """
+                        )
 
-                    voting_sub_model = imblearn.BalancedRandomForestClassifier(**self.classifier_info_base)
+                    voting_sub_model = imblearn.BalancedRandomForestClassifier(
+                        **self.classifier_info_base
+                    )
 
-                elif classifier == 'blab':
+                elif classifier == "blab":
 
                     if not IMBLEARN_INSTALLED:
 
-                        logger.error("""\
+                        logger.error(
+                            """\
 
                         Imbalanced learn must be installed to use the model. Install from
 
                         pip install imbalanced-learn
 
-                        """)
+                        """
+                        )
 
-                    voting_sub_model = imblearn.RUSBoostClassifier(**self.classifier_info_base)
+                    voting_sub_model = imblearn.RUSBoostClassifier(
+                        **self.classifier_info_base
+                    )
 
-                elif classifier == 'tpot':
+                elif classifier == "tpot":
 
                     if not TPOT_INSTALLED:
 
-                        logger.error("""\
+                        logger.error(
+                            """\
 
                         Tpot must be installed to use the model.
 
-                        """)
+                        """
+                        )
 
-                    voting_sub_model = TPOTClassifier(generations=5, population_size=50, cv=5, verbosity=0)
+                    voting_sub_model = TPOTClassifier(
+                        generations=5, population_size=50, cv=5, verbosity=0
+                    )
 
-                elif classifier == 'mondrian':
+                elif classifier == "mondrian":
 
                     if not SKGARDEN_INSTALLED:
 
-                        logger.error("""\
+                        logger.error(
+                            """\
 
                         Scikit-garden must be installed to use the Mondrian model.
 
-                        """)
+                        """
+                        )
 
-                    voting_sub_model = skgarden.MondrianForestClassifier(**self.classifier_info_)
+                    voting_sub_model = skgarden.MondrianForestClassifier(
+                        **self.classifier_info_
+                    )
 
-                elif classifier == 'gb':
-                    voting_sub_model = ensemble.GradientBoostingClassifier(**self.classifier_info_)
+                elif classifier == "gb":
+                    voting_sub_model = ensemble.GradientBoostingClassifier(
+                        **self.classifier_info_
+                    )
 
-                elif classifier == 'qda':
+                elif classifier == "qda":
                     voting_sub_model = QDA(**self.classifier_info_)
 
-                elif classifier == 'gaussian':
-                    voting_sub_model = GaussianProcessClassifier(**self.classifier_info_)
+                elif classifier == "gaussian":
+                    voting_sub_model = GaussianProcessClassifier(
+                        **self.classifier_info_
+                    )
 
-                elif classifier == 'svmc':
+                elif classifier == "svmc":
                     voting_sub_model = svm.SVC(**self.classifier_info_)
 
-                elif classifier == 'svmnu':
+                elif classifier == "svmnu":
                     voting_sub_model = svm.NuSVC(**self.classifier_info_)
 
-                elif classifier == 'catboost':
+                elif classifier == "catboost":
 
                     if not CATBOOST_INSTALLED:
 
-                        logger.error("""\
+                        logger.error(
+                            """\
 
                         Catboost must be installed to use the model.
                                                 
-                        """)
+                        """
+                        )
 
                     voting_sub_model = CatBoostClassifier(**self.classifier_info_)
 
-                elif classifier == 'lightgbm':
+                elif classifier == "lightgbm":
 
                     if not LIGHTGBM_INSTALLED:
 
-                        logger.error("""\
+                        logger.error(
+                            """\
 
                         LightGBM must be installed to use the model.
                         
@@ -4345,25 +5187,32 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                         # Python 3.x
                         pip install lightgbm
 
-                        """)
+                        """
+                        )
 
                     voting_sub_model = gbm.LGBMClassifier(**self.classifier_info_)
 
-                elif classifier == 'xgboost':
+                elif classifier == "xgboost":
 
                     if not XGBOOST_INSTALLED:
 
-                        logger.error("""\
+                        logger.error(
+                            """\
 
                         XGBoost must be installed to use the model.
 
-                        """)
+                        """
+                        )
 
                     voting_sub_model = XGBClassifier(**self.classifier_info_)
 
                 else:
 
-                    logger.warning('  The model, {MODEL}, is not supported'.format(MODEL=classifier))
+                    logger.warning(
+                        "  The model, {MODEL}, is not supported".format(
+                            MODEL=classifier
+                        )
+                    )
                     continue
 
                 # Check if the model supports sample weights.
@@ -4372,34 +5221,37 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 except:
                     argi = inspect.getfullargspec(voting_sub_model.fit)
 
-                supports_weights = True if 'sample_weight' in argi.args else False
+                supports_weights = True if "sample_weight" in argi.args else False
 
-                logger.info('  Fitting a {MODEL} model ...'.format(MODEL=classifier))
+                logger.info("  Fitting a {MODEL} model ...".format(MODEL=classifier))
 
                 if supports_weights:
 
-                    voting_sub_model.fit(self.p_vars,
-                                         self.labels,
-                                         sample_weight=self.sample_weight)
+                    voting_sub_model.fit(
+                        self.p_vars, self.labels, sample_weight=self.sample_weight
+                    )
 
                 else:
 
-                    voting_sub_model.fit(self.p_vars,
-                                         self.labels)
+                    voting_sub_model.fit(self.p_vars, self.labels)
 
                 if self.calibrate_proba:
 
                     if self.n_samps >= 1000:
 
-                        cal_model = calibration.CalibratedClassifierCV(base_estimator=voting_sub_model,
-                                                                       method='isotonic',
-                                                                       cv='prefit')
+                        cal_model = calibration.CalibratedClassifierCV(
+                            base_estimator=voting_sub_model,
+                            method="isotonic",
+                            cv="prefit",
+                        )
 
                     else:
 
-                        cal_model = calibration.CalibratedClassifierCV(base_estimator=voting_sub_model,
-                                                                       method='sigmoid',
-                                                                       cv='prefit')
+                        cal_model = calibration.CalibratedClassifierCV(
+                            base_estimator=voting_sub_model,
+                            method="sigmoid",
+                            cv="prefit",
+                        )
 
                     # # Limit the test size.
                     # samp_thresh = 100000
@@ -4425,22 +5277,32 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                     #     p_vars_test_cal = self.p_vars_test
                     #     labels_test_cal = self.labels_test
 
-                    logger.info('  Calibrating a {MODEL} model ...'.format(MODEL=classifier))
+                    logger.info(
+                        "  Calibrating a {MODEL} model ...".format(MODEL=classifier)
+                    )
 
                     # Calibrate the model on the test data.
                     if isinstance(self.calibrate_test, np.ndarray):
 
-                        assert self.calibrate_test.shape[0] == len(self.calibrate_labels) == len(self.calibrate_weights)
+                        assert (
+                            self.calibrate_test.shape[0]
+                            == len(self.calibrate_labels)
+                            == len(self.calibrate_weights)
+                        )
 
-                        cal_model.fit(self.calibrate_test,
-                                      self.calibrate_labels,
-                                      sample_weight=self.calibrate_weights)
+                        cal_model.fit(
+                            self.calibrate_test,
+                            self.calibrate_labels,
+                            sample_weight=self.calibrate_weights,
+                        )
 
                     else:
 
-                        cal_model.fit(self.p_vars_test,
-                                      self.labels_test,
-                                      sample_weight=self.sample_weight_test)
+                        cal_model.fit(
+                            self.p_vars_test,
+                            self.labels_test,
+                            sample_weight=self.sample_weight_test,
+                        )
 
                     if isinstance(self.view_calibration, int):
 
@@ -4448,88 +5310,115 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                         # Plot the calibrated probabilities.
 
-                        cal_prob_pos = cal_model.predict_proba(self.p_vars_test)[:, self.view_calibration-1]
-                        uncal_prob_pos = voting_sub_model.predict_proba(self.p_vars_test)[:, self.view_calibration-1]
+                        cal_prob_pos = cal_model.predict_proba(self.p_vars_test)[
+                            :, self.view_calibration - 1
+                        ]
+                        uncal_prob_pos = voting_sub_model.predict_proba(
+                            self.p_vars_test
+                        )[:, self.view_calibration - 1]
 
-                        cal_fraction_of_positives, cal_mean_predicted_value = calibration_curve(self.labels_test,
-                                                                                                cal_prob_pos,
-                                                                                                n_bins=10)
+                        cal_fraction_of_positives, cal_mean_predicted_value = (
+                            calibration_curve(self.labels_test, cal_prob_pos, n_bins=10)
+                        )
 
-                        uncal_fraction_of_positives, uncal_mean_predicted_value = calibration_curve(self.labels_test,
-                                                                                                    uncal_prob_pos,
-                                                                                                    n_bins=10)
+                        uncal_fraction_of_positives, uncal_mean_predicted_value = (
+                            calibration_curve(
+                                self.labels_test, uncal_prob_pos, n_bins=10
+                            )
+                        )
 
                         ax = plt.figure().add_subplot(111)
 
-                        ax.plot(cal_mean_predicted_value,
-                                cal_fraction_of_positives,
-                                's-',
-                                c='#5F2871',
-                                label='{}, label {:d}, calibrated'.format(classifier, self.view_calibration))
+                        ax.plot(
+                            cal_mean_predicted_value,
+                            cal_fraction_of_positives,
+                            "s-",
+                            c="#5F2871",
+                            label="{}, label {:d}, calibrated".format(
+                                classifier, self.view_calibration
+                            ),
+                        )
 
-                        ax.plot(uncal_mean_predicted_value,
-                                uncal_fraction_of_positives,
-                                's-',
-                                c='#338A2E',
-                                label='{}, label {:d}, Uncalibrated'.format(classifier, self.view_calibration))
+                        ax.plot(
+                            uncal_mean_predicted_value,
+                            uncal_fraction_of_positives,
+                            "s-",
+                            c="#338A2E",
+                            label="{}, label {:d}, Uncalibrated".format(
+                                classifier, self.view_calibration
+                            ),
+                        )
 
-                        ax.set_ylabel('Fraction positive')
-                        ax.set_xlabel('Mean predicted value')
+                        ax.set_ylabel("Fraction positive")
+                        ax.set_xlabel("Mean predicted value")
                         plt.tight_layout(pad=0.1)
                         plt.legend()
 
-                        out_fig = os.path.join(self.fig_location,
-                                               '{}_{:d}_calibration.png'.format(classifier,
-                                                                                self.view_calibration))
+                        out_fig = os.path.join(
+                            self.fig_location,
+                            "{}_{:d}_calibration.png".format(
+                                classifier, self.view_calibration
+                            ),
+                        )
 
-                        logger.info('  Calibration curves saved to {}'.format(out_fig))
+                        logger.info("  Calibration curves saved to {}".format(out_fig))
 
                         plt.savefig(out_fig, dpi=300)
 
                         sys.exit()
 
                     # Update the voting list.
-                    classifier_list.append((classifier,
-                                            copy(cal_model)))
+                    classifier_list.append((classifier, copy(cal_model)))
 
                 else:
 
                     # Update the voting list.
-                    classifier_list.append((classifier,
-                                            copy(voting_sub_model)))
+                    classifier_list.append((classifier, copy(voting_sub_model)))
 
                 ci += 1
 
-            vote_weights = None if 'vote_weights' not in classifier_info else classifier_info['vote_weights']
+            vote_weights = (
+                None
+                if "vote_weights" not in classifier_info
+                else classifier_info["vote_weights"]
+            )
 
             # self.model = ensemble.VotingClassifier(estimators=classifier_list,
             #                                        voting='soft',
             #                                        weights=vote_weights)
 
-            self.model = VotingClassifier(estimators=classifier_list,
-                                          weights=vote_weights,
-                                          y=self.labels)
+            self.model = VotingClassifier(
+                estimators=classifier_list, weights=vote_weights, y=self.labels
+            )
 
             # Reset the original classifier info.
             self.classifier_info = copy(classifier_info)
 
         else:
 
-            if self.classifier_info['classifier'] in ['ABR', 'gbr', 'ex-rfr', 'rfr', 'ex-rfr', 'SVR', 'SVRA']:
+            if self.classifier_info["classifier"] in [
+                "ABR",
+                "gbr",
+                "ex-rfr",
+                "rfr",
+                "ex-rfr",
+                "SVR",
+                "SVRA",
+            ]:
                 self.discrete = False
             else:
                 self.discrete = True
 
-            if self.classifier_info['classifier'] == 'bayes':
+            if self.classifier_info["classifier"] == "bayes":
 
                 self.model = GaussianNB()
 
                 # self.model = cv2.ml.NormalBayesClassifier_create()
 
-            elif self.classifier_info['classifier'] == 'CART':
+            elif self.classifier_info["classifier"] == "CART":
                 self.model = cv2.ml.DTrees_create()
 
-            elif self.classifier_info['classifier'] in ['cvrf', 'CVRFR']:
+            elif self.classifier_info["classifier"] in ["cvrf", "CVRFR"]:
 
                 if not self.get_probs:
                     self.model = cv2.ml.RTrees_create()
@@ -4542,185 +5431,233 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             #     #     self.model = cv2.ml.ANN_MLP_create(np.array([self.n_feas, self.classifier_info['n_hidden'],
             #     #                                                  self.n_classes]))
 
-            elif self.classifier_info['classifier'] in ['cvsvm', 'cvsvma', 'CVSVMR', 'CVSVMRA']:
+            elif self.classifier_info["classifier"] in [
+                "cvsvm",
+                "cvsvma",
+                "CVSVMR",
+                "CVSVMRA",
+            ]:
                 self.model = cv2.ml.SVM_create()
 
-            elif self.classifier_info['classifier'] == 'dt':
+            elif self.classifier_info["classifier"] == "dt":
                 self.model = tree.DecisionTreeClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'dtr':
+            elif self.classifier_info["classifier"] == "dtr":
                 self.model = tree.DecisionTreeRegressor(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'ex-dt':
+            elif self.classifier_info["classifier"] == "ex-dt":
                 self.model = tree.ExtraTreeClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'ex-dtr':
+            elif self.classifier_info["classifier"] == "ex-dtr":
                 self.model = tree.ExtraTreeRegressor(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'logistic':
+            elif self.classifier_info["classifier"] == "logistic":
                 self.model = LogisticRegression(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'nn':
+            elif self.classifier_info["classifier"] == "nn":
                 self.model = KNeighborsClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'rf':
+            elif self.classifier_info["classifier"] == "rf":
                 self.model = ensemble.RandomForestClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'ex-rf':
+            elif self.classifier_info["classifier"] == "ex-rf":
                 self.model = ensemble.ExtraTreesClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'rfr':
+            elif self.classifier_info["classifier"] == "rfr":
                 self.model = ensemble.RandomForestRegressor(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'ex-rfr':
+            elif self.classifier_info["classifier"] == "ex-rfr":
                 self.model = ensemble.ExtraTreesRegressor(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'ab-dt':
+            elif self.classifier_info["classifier"] == "ab-dt":
 
-                self.model = ensemble.AdaBoostClassifier(base_estimator=tree.DecisionTreeClassifier(**self.classifier_info_),
-                                                         **self.classifier_info_base)
+                self.model = ensemble.AdaBoostClassifier(
+                    base_estimator=tree.DecisionTreeClassifier(**self.classifier_info_),
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'ab-rf':
+            elif self.classifier_info["classifier"] == "ab-rf":
 
-                self.model = ensemble.AdaBoostClassifier(base_estimator=ensemble.RandomForestClassifier(**self.classifier_info_),
-                                                         **self.classifier_info_base)
+                self.model = ensemble.AdaBoostClassifier(
+                    base_estimator=ensemble.RandomForestClassifier(
+                        **self.classifier_info_
+                    ),
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'ab-ex-rf':
+            elif self.classifier_info["classifier"] == "ab-ex-rf":
 
-                self.model = ensemble.AdaBoostClassifier(base_estimator=ensemble.ExtraTreesClassifier(**self.classifier_info_),
-                                                         **self.classifier_info_base)
+                self.model = ensemble.AdaBoostClassifier(
+                    base_estimator=ensemble.ExtraTreesClassifier(
+                        **self.classifier_info_
+                    ),
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'ab-ex-dt':
+            elif self.classifier_info["classifier"] == "ab-ex-dt":
 
-                self.model = ensemble.AdaBoostClassifier(base_estimator=tree.ExtraTreeClassifier(**self.classifier_info_),
-                                                         **self.classifier_info_base)
+                self.model = ensemble.AdaBoostClassifier(
+                    base_estimator=tree.ExtraTreeClassifier(**self.classifier_info_),
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'abr':
+            elif self.classifier_info["classifier"] == "abr":
 
-                self.model = ensemble.AdaBoostRegressor(base_estimator=tree.DecisionTreeRegressor(**self.classifier_info_),
-                                                        **self.classifier_info_base)
+                self.model = ensemble.AdaBoostRegressor(
+                    base_estimator=tree.DecisionTreeRegressor(**self.classifier_info_),
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'abr-ex-dtr':
+            elif self.classifier_info["classifier"] == "abr-ex-dtr":
 
-                self.model = ensemble.AdaBoostRegressor(base_estimator=tree.ExtraTreeRegressor(**self.classifier_info_),
-                                                        **self.classifier_info_base)
+                self.model = ensemble.AdaBoostRegressor(
+                    base_estimator=tree.ExtraTreeRegressor(**self.classifier_info_),
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'bag-dt':
+            elif self.classifier_info["classifier"] == "bag-dt":
 
-                self.model = ensemble.BaggingClassifier(base_estimator=tree.DecisionTreeClassifier(**self.classifier_info_),
-                                                        **self.classifier_info_base)
+                self.model = ensemble.BaggingClassifier(
+                    base_estimator=tree.DecisionTreeClassifier(**self.classifier_info_),
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'bag-dtr':
+            elif self.classifier_info["classifier"] == "bag-dtr":
 
-                self.model = ensemble.BaggingRegressor(base_estimator=tree.DecisionTreeRegressor(**self.classifier_info_),
-                                                       **self.classifier_info_base)
+                self.model = ensemble.BaggingRegressor(
+                    base_estimator=tree.DecisionTreeRegressor(**self.classifier_info_),
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'bag-ex-dt':
+            elif self.classifier_info["classifier"] == "bag-ex-dt":
 
-                self.model = ensemble.BaggingClassifier(base_estimator=tree.ExtraTreeClassifier(**self.classifier_info_),
-                                                        **self.classifier_info_base)
+                self.model = ensemble.BaggingClassifier(
+                    base_estimator=tree.ExtraTreeClassifier(**self.classifier_info_),
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'blag':
+            elif self.classifier_info["classifier"] == "blag":
 
                 if not IMBLEARN_INSTALLED:
 
-                    logger.error("""\
+                    logger.error(
+                        """\
 
                     Imbalanced learn must be installed to use the model. Install from
 
                     pip install imbalanced-learn
 
-                    """)
+                    """
+                    )
 
-                self.model = imblearn.BalancedBaggingClassifier(**self.classifier_info_base)
+                self.model = imblearn.BalancedBaggingClassifier(
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'blaf':
+            elif self.classifier_info["classifier"] == "blaf":
 
                 if not IMBLEARN_INSTALLED:
 
-                    logger.error("""\
+                    logger.error(
+                        """\
 
                     Imbalanced learn must be installed to use the model. Install from
 
                     pip install imbalanced-learn
 
-                    """)
+                    """
+                    )
 
-                self.model = imblearn.BalancedRandomForestClassifier(**self.classifier_info_base)
+                self.model = imblearn.BalancedRandomForestClassifier(
+                    **self.classifier_info_base
+                )
 
-            elif self.classifier_info['classifier'] == 'blab':
+            elif self.classifier_info["classifier"] == "blab":
 
                 if not IMBLEARN_INSTALLED:
 
-                    logger.error("""\
+                    logger.error(
+                        """\
 
                     Imbalanced learn must be installed to use the model. Install from
 
                     pip install imbalanced-learn
 
-                    """)
+                    """
+                    )
 
                 self.model = imblearn.RUSBoostClassifier(**self.classifier_info_base)
 
-            elif self.classifier_info['classifier'] == 'tpot':
+            elif self.classifier_info["classifier"] == "tpot":
 
                 if not TPOT_INSTALLED:
 
-                    logger.error("""\
+                    logger.error(
+                        """\
 
                     Tpot must be installed to use the model.
 
-                    """)
+                    """
+                    )
 
-                self.model = TPOTClassifier(generations=5, population_size=50, cv=5, verbosity=0)
+                self.model = TPOTClassifier(
+                    generations=5, population_size=50, cv=5, verbosity=0
+                )
 
-            elif self.classifier_info['classifier'] == 'mondrian':
+            elif self.classifier_info["classifier"] == "mondrian":
 
                 if not SKGARDEN_INSTALLED:
 
-                    logger.error("""\
+                    logger.error(
+                        """\
 
                     Scikit-garden must be installed to use the Mondrian model.
 
-                    """)
+                    """
+                    )
 
                 self.model = skgarden.MondrianForestClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'gb':
-                self.model = ensemble.GradientBoostingClassifier(**self.classifier_info_)
+            elif self.classifier_info["classifier"] == "gb":
+                self.model = ensemble.GradientBoostingClassifier(
+                    **self.classifier_info_
+                )
 
-            elif self.classifier_info['classifier'] == 'gbr':
+            elif self.classifier_info["classifier"] == "gbr":
                 self.model = ensemble.GradientBoostingRegressor(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'svmc':
+            elif self.classifier_info["classifier"] == "svmc":
                 self.model = svm.SVC(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'svmnu':
+            elif self.classifier_info["classifier"] == "svmnu":
                 self.model = svm.NuSVC(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'qda':
+            elif self.classifier_info["classifier"] == "qda":
                 self.model = QDA(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'gaussian':
+            elif self.classifier_info["classifier"] == "gaussian":
                 self.model = GaussianProcessClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'catboost':
+            elif self.classifier_info["classifier"] == "catboost":
 
                 if not CATBOOST_INSTALLED:
 
-                    logger.error("""\
+                    logger.error(
+                        """\
 
                     Catboost must be installed to use the model.
 
-                    """)
+                    """
+                    )
 
                 self.model = CatBoostClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'lightgbm':
+            elif self.classifier_info["classifier"] == "lightgbm":
 
                 if not LIGHTGBM_INSTALLED:
 
-                    logger.error("""\
+                    logger.error(
+                        """\
 
                     LightGBM must be installed to use the model. 
                     
@@ -4734,35 +5671,40 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                     # Python 3.x
                     pip install lightgbm
 
-                    """)
+                    """
+                    )
 
                 self.model = gbm.LGBMClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'xgboost':
+            elif self.classifier_info["classifier"] == "xgboost":
 
                 if not XGBOOST_INSTALLED:
 
-                    logger.error("""\
+                    logger.error(
+                        """\
 
                     XGBoost must be installed to use the model.
 
-                    """)
+                    """
+                    )
 
                 self.model = XGBClassifier(**self.classifier_info_)
 
-            elif self.classifier_info['classifier'] == 'chaincrf':
+            elif self.classifier_info["classifier"] == "chaincrf":
 
-                if self.classifier_info_['n_jobs'] == 1:
+                if self.classifier_info_["n_jobs"] == 1:
 
-                    self.model = ssvm.FrankWolfeSSVM(ChainCRF(directed=True),
-                                                     **self.classifier_info_)
+                    self.model = ssvm.FrankWolfeSSVM(
+                        ChainCRF(directed=True), **self.classifier_info_
+                    )
 
                 else:
 
-                    self.model = ssvm.OneSlackSSVM(ChainCRF(directed=True),
-                                                   **self.classifier_info_)
+                    self.model = ssvm.OneSlackSSVM(
+                        ChainCRF(directed=True), **self.classifier_info_
+                    )
 
-            elif self.classifier_info['classifier'] == 'gridcrf':
+            elif self.classifier_info["classifier"] == "gridcrf":
 
                 try:
 
@@ -4776,15 +5718,16 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                     #
                     # else:
 
-                    self.model = ssvm.OneSlackSSVM(GridCRF(**self.grid_info),
-                                                   **self.classifier_info_)
+                    self.model = ssvm.OneSlackSSVM(
+                        GridCRF(**self.grid_info), **self.classifier_info_
+                    )
 
                 except:
 
-                    logger.error('  The Grid CRF failed.')
+                    logger.error("  The Grid CRF failed.")
                     raise RuntimeError
 
-            elif self.classifier_info['classifier'] == 'ORRF':
+            elif self.classifier_info["classifier"] == "ORRF":
 
                 # try:
                 #     import otbApplication as otb
@@ -4793,54 +5736,70 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                 v_info = vector_tools.vopen(self.in_shapefile)
 
-                if v_info.shp_geom_name.lower() == 'point':
-                    sys.exit('\nThe input shapefile must be a polygon.\n')
+                if v_info.shp_geom_name.lower() == "point":
+                    sys.exit("\nThe input shapefile must be a polygon.\n")
 
                 if os.path.isfile(self.out_stats):
-                    logger.info('  The statistics already exist')
+                    logger.info("  The statistics already exist")
                 else:
 
                     if self.stats_from_image:
 
                         # image statistics
-                        com = 'otbcli_ComputeImagesStatistics -il %s -out %s' % (self.input_image, self.out_stats)
+                        com = "otbcli_ComputeImagesStatistics -il %s -out %s" % (
+                            self.input_image,
+                            self.out_stats,
+                        )
 
                         subprocess.call(com, shell=True)
 
                     else:
 
-                        gap_1 = '    '
-                        gap_2 = '        '
+                        gap_1 = "    "
+                        gap_2 = "        "
 
-                        xml_string = '<?xml version="1.0" ?>\n<FeatureStatistics>\n{}<Statistic name="mean">\n{}'.format(gap_1, gap_2)
-
-                        # gather stats from samples
-                        for fea_pos in range(0, self.n_feas):
-
-                            stat_line = '<StatisticVector value="%f" />' % self.p_vars[:, fea_pos].mean()
-
-                            # add the line to the xml string
-                            if (fea_pos + 1) == self.n_feas:
-                                xml_string = '%s%s\n%s' % (xml_string, stat_line, gap_1)
-                            else:
-                                xml_string = '%s%s\n%s' % (xml_string, stat_line, gap_2)
-
-                        xml_string = '%s</Statistic>\n%s<Statistic name="stddev">\n%s' % (xml_string, gap_1, gap_2)
+                        xml_string = '<?xml version="1.0" ?>\n<FeatureStatistics>\n{}<Statistic name="mean">\n{}'.format(
+                            gap_1, gap_2
+                        )
 
                         # gather stats from samples
                         for fea_pos in range(0, self.n_feas):
 
-                            stat_line = '<StatisticVector value="%f" />' % self.p_vars[:, fea_pos].std()
+                            stat_line = (
+                                '<StatisticVector value="%f" />'
+                                % self.p_vars[:, fea_pos].mean()
+                            )
 
                             # add the line to the xml string
                             if (fea_pos + 1) == self.n_feas:
-                                xml_string = '%s%s\n%s' % (xml_string, stat_line, gap_1)
+                                xml_string = "%s%s\n%s" % (xml_string, stat_line, gap_1)
                             else:
-                                xml_string = '%s%s\n%s' % (xml_string, stat_line, gap_2)
+                                xml_string = "%s%s\n%s" % (xml_string, stat_line, gap_2)
 
-                        xml_string = '%s</Statistic>\n</FeatureStatistics>\n' % xml_string
+                        xml_string = (
+                            '%s</Statistic>\n%s<Statistic name="stddev">\n%s'
+                            % (xml_string, gap_1, gap_2)
+                        )
 
-                        with open(self.out_stats, 'w') as xml_wr:
+                        # gather stats from samples
+                        for fea_pos in range(0, self.n_feas):
+
+                            stat_line = (
+                                '<StatisticVector value="%f" />'
+                                % self.p_vars[:, fea_pos].std()
+                            )
+
+                            # add the line to the xml string
+                            if (fea_pos + 1) == self.n_feas:
+                                xml_string = "%s%s\n%s" % (xml_string, stat_line, gap_1)
+                            else:
+                                xml_string = "%s%s\n%s" % (xml_string, stat_line, gap_2)
+
+                        xml_string = (
+                            "%s</Statistic>\n</FeatureStatistics>\n" % xml_string
+                        )
+
+                        with open(self.out_stats, "w") as xml_wr:
                             xml_wr.writelines(xml_string)
 
                 # app = otb.Registry.CreateApplication('ComputeImagesStatistics')
@@ -4852,16 +5811,18 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                     os.remove(self.output_model)
 
                 # train the model
-                com = 'otbcli_TrainImagesClassifier -io.il {} -io.vd {} -io.imstat {} -classifier rf \
+                com = "otbcli_TrainImagesClassifier -io.il {} -io.vd {} -io.imstat {} -classifier rf \
                 -classifier.rf.max {:d} -classifier.rf.nbtrees {:d} \
-                -classifier.rf.min {:d} -classifier.rf.var {:d} -io.out {}'.format(self.input_image,
-                                                                                   self.in_shapefile,
-                                                                                   self.out_stats,
-                                                                                   self.classifier_info['max_depth'],
-                                                                                   self.classifier_info['trees'],
-                                                                                   self.classifier_info['min_samps'],
-                                                                                   self.classifier_info['rand_vars'],
-                                                                                   self.output_model)
+                -classifier.rf.min {:d} -classifier.rf.var {:d} -io.out {}".format(
+                    self.input_image,
+                    self.in_shapefile,
+                    self.out_stats,
+                    self.classifier_info["max_depth"],
+                    self.classifier_info["trees"],
+                    self.classifier_info["min_samps"],
+                    self.classifier_info["rand_vars"],
+                    self.output_model,
+                )
 
                 subprocess.call(com, shell=True)
 
@@ -4879,47 +5840,54 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             else:
 
-                logger.error('  The model {} is not supported'.format(self.classifier_info['classifier']))
+                logger.error(
+                    "  The model {} is not supported".format(
+                        self.classifier_info["classifier"]
+                    )
+                )
                 raise NameError
 
     def _set_parameters(self):
-
         """Sets model parameters for OpenCV"""
 
         #############################################
         # Set algorithm parameters for OpenCV models.
         #############################################
 
-        if self.classifier_info['classifier'] in ['CART', 'cvrf', 'CVEX_RF']:
+        if self.classifier_info["classifier"] in ["CART", "cvrf", "CVEX_RF"]:
 
-            self.model.setMaxDepth(self.classifier_info['max_depth'])
-            self.model.setMinSampleCount(self.classifier_info['min_samps'])
-            self.model.setCalculateVarImportance(self.classifier_info['calc_var_importance'])
-            self.model.setActiveVarCount(self.classifier_info['rand_vars'])
-            self.model.setTermCriteria(self.classifier_info['term_crit'])
+            self.model.setMaxDepth(self.classifier_info["max_depth"])
+            self.model.setMinSampleCount(self.classifier_info["min_samps"])
+            self.model.setCalculateVarImportance(
+                self.classifier_info["calc_var_importance"]
+            )
+            self.model.setActiveVarCount(self.classifier_info["rand_vars"])
+            self.model.setTermCriteria(self.classifier_info["term_crit"])
 
-            if self.classifier_info['priors'].min() < 1:
-                self.model.setPriors(self.classifier_info['priors'])
-            
-            self.model.setTruncatePrunedTree(self.classifier_info['truncate'])
+            if self.classifier_info["priors"].min() < 1:
+                self.model.setPriors(self.classifier_info["priors"])
 
-        elif self.classifier_info['classifier'] == 'cvmlp':
+            self.model.setTruncatePrunedTree(self.classifier_info["truncate"])
+
+        elif self.classifier_info["classifier"] == "cvmlp":
 
             n_steps = 1000
-            max_err = .0001
-            step_size = .3
-            momentum = .2
+            max_err = 0.0001
+            step_size = 0.3
+            momentum = 0.2
 
             # cv2.TERM_CRITERIA_EPS
-            self.parameters = dict(term_crit=(cv2.TERM_CRITERIA_COUNT, n_steps, max_err),
-                                   train_method=cv2.ANN_MLP_TRAIN_PARAMS_BACKPROP,
-                                   bp_dw_scale=step_size,
-                                   bp_moment_scale=momentum)
+            self.parameters = dict(
+                term_crit=(cv2.TERM_CRITERIA_COUNT, n_steps, max_err),
+                train_method=cv2.ANN_MLP_TRAIN_PARAMS_BACKPROP,
+                bp_dw_scale=step_size,
+                bp_moment_scale=momentum,
+            )
 
-        elif self.classifier_info['classifier'] == 'cvsvm':
+        elif self.classifier_info["classifier"] == "cvsvm":
 
-            self.model.setC(self.classifier_info_svm['C'])
-            self.model.setGamma(self.classifier_info_svm['gamma'])
+            self.model.setC(self.classifier_info_svm["C"])
+            self.model.setGamma(self.classifier_info_svm["gamma"])
             self.model.setKernel(cv2.ml.SVM_RBF)
             self.model.setType(cv2.ml.SVM_C_SVC)
 
@@ -4928,84 +5896,101 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             #                        C=self.classifier_info_svm['C'],
             #                        gamma=self.classifier_info_svm['gamma'])
 
-        elif self.classifier_info['classifier'] == 'cvsvma':
+        elif self.classifier_info["classifier"] == "cvsvma":
 
             # SVM, parameters optimized
-            self.parameters = dict(kernel_type=cv2.ml.SVM_RBF,
-                                   svm_type=cv2.ml.SVM_C_SVC)
+            self.parameters = dict(
+                kernel_type=cv2.ml.SVM_RBF, svm_type=cv2.ml.SVM_C_SVC
+            )
 
-        elif self.classifier_info['classifier'] == 'CVSVMR':
+        elif self.classifier_info["classifier"] == "CVSVMR":
 
             # SVM regression
-            self.parameters = dict(kernel_type=cv2.ml.SVM_RBF,
-                                   svm_type=cv2.ml.SVM_NU_SVR,
-                                   C=self.classifier_info_svm['C'],
-                                   gamma=self.classifier_info_svm['gamma'],
-                                   nu=self.classifier_info_svm['nu'],
-                                   p=self.classifier_info_svm['p'])
+            self.parameters = dict(
+                kernel_type=cv2.ml.SVM_RBF,
+                svm_type=cv2.ml.SVM_NU_SVR,
+                C=self.classifier_info_svm["C"],
+                gamma=self.classifier_info_svm["gamma"],
+                nu=self.classifier_info_svm["nu"],
+                p=self.classifier_info_svm["p"],
+            )
 
-        elif self.classifier_info['classifier'] == 'CVSVMRA':
+        elif self.classifier_info["classifier"] == "CVSVMRA":
 
             # SVM regression, parameters optimized
-            self.parameters = dict(kernel_type=cv2.ml.SVM_RBF,
-                                   svm_type=cv2.ml.SVM_NU_SVR,
-                                   nu=self.classifier_info['nu'])
+            self.parameters = dict(
+                kernel_type=cv2.ml.SVM_RBF,
+                svm_type=cv2.ml.SVM_NU_SVR,
+                nu=self.classifier_info["nu"],
+            )
 
         else:
 
             self.parameters = None
 
     def _train_model(self):
-
         """
         Trains a model and saves to file if prompted
         """
 
         if not self.be_quiet:
 
-            if hasattr(self.model, 'is_prefit_model'):
-                logger.info('  The model has already been trained as a voting model.')
+            if hasattr(self.model, "is_prefit_model"):
+                logger.info("  The model has already been trained as a voting model.")
             else:
 
-                if not hasattr(self, 'n_samps'):
+                if not hasattr(self, "n_samps"):
                     self.n_samps = self.p_vars.shape[0]
 
-                if not hasattr(self, 'n_feas'):
+                if not hasattr(self, "n_feas"):
                     self.n_feas = self.p_vars.shape[1]
 
-                if self.classifier_info['classifier'][0].lower() in 'aeiou':
-                    a_or_an = 'an'
+                if self.classifier_info["classifier"][0].lower() in "aeiou":
+                    a_or_an = "an"
                 else:
-                    a_or_an = 'a'
+                    a_or_an = "a"
 
-                if isinstance(self.classifier_info['classifier'], list):
+                if isinstance(self.classifier_info["classifier"], list):
 
-                    logger.info('  Training a voting model with {} ...'.format(','.join(self.classifier_info['classifier'])))
+                    logger.info(
+                        "  Training a voting model with {} ...".format(
+                            ",".join(self.classifier_info["classifier"])
+                        )
+                    )
 
                 else:
 
-                    logger.info('  Training {} {} model with {:,d} samples and {:,d} variables ...'.format(a_or_an,
-                                                                                                           self.classifier_info['classifier'],
-                                                                                                           self.n_samps,
-                                                                                                           self.n_feas))
+                    logger.info(
+                        "  Training {} {} model with {:,d} samples and {:,d} variables ...".format(
+                            a_or_an,
+                            self.classifier_info["classifier"],
+                            self.n_samps,
+                            self.n_feas,
+                        )
+                    )
 
         # OpenCV tree-based models
-        if self.classifier_info['classifier'] in ['CART', 'cvrf', 'CVEX_RF']:
+        if self.classifier_info["classifier"] in ["CART", "cvrf", "CVEX_RF"]:
 
             self.model.train(self.p_vars, 0, self.labels)
             # self.model.train(self.p_vars, cv2.CV_ROW_SAMPLE, self.labels, params=self.parameters)
 
         # OpenCV tree-based regression
-        elif self.classifier_info['classifier'] in ['CVRFR', 'CVEX_RFR']:
+        elif self.classifier_info["classifier"] in ["CVRFR", "CVEX_RFR"]:
 
-            self.model.train(self.p_vars, cv2.CV_ROW_SAMPLE, self.labels,
-                             varType=np.zeros(self.n_feas+1, dtype='uint8'), params=self.parameters)
+            self.model.train(
+                self.p_vars,
+                cv2.CV_ROW_SAMPLE,
+                self.labels,
+                varType=np.zeros(self.n_feas + 1, dtype="uint8"),
+                params=self.parameters,
+            )
 
-        elif self.classifier_info['classifier'] == 'cvmlp':
+        elif self.classifier_info["classifier"] == "cvmlp":
 
             # Convert input strings to binary zeros and ones, and set the output
             # array to all -1's with ones along the diagonal.
-            targets = -1 * np.ones((self.n_samps, self.n_classes), 'float')
+            targets = -1 * np.ones((self.n_samps, self.n_classes), "float")
 
             for i in range(0, self.n_samps):
 
@@ -5015,36 +6000,40 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             self.model.train(self.p_vars, targets, None, params=self.parameters)
 
-        elif self.classifier_info['classifier'] in ['cvsvm', 'CVSVMR']:
+        elif self.classifier_info["classifier"] in ["cvsvm", "CVSVMR"]:
 
             if isinstance(self.rank_method, str):
                 self.rank_feas(rank_method=self.rank_method, top_feas=self.top_feas)
                 # self.model.train(self.p_vars, self.labels, varIdx=self.ranked_feas-1, params=self.parameters)
-                self.model.train(self.p_vars, self.labels, varIdx=self.ranked_feas-1)
+                self.model.train(self.p_vars, self.labels, varIdx=self.ranked_feas - 1)
             else:
                 # self.model.train(self.p_vars, self.labels, params=self.parameters)
                 self.model.train(self.p_vars, 0, self.labels)
 
-        elif self.classifier_info['classifier'] in ['cvsvma', 'cvsvra']:
+        elif self.classifier_info["classifier"] in ["cvsvma", "cvsvra"]:
 
-            logger.info('  Be patient. Auto tuning can take a while.')
+            logger.info("  Be patient. Auto tuning can take a while.")
 
-            self.model.train_auto(self.p_vars, self.labels, None, None, params=self.parameters, k_fold=10)
+            self.model.train_auto(
+                self.p_vars, self.labels, None, None, params=self.parameters, k_fold=10
+            )
 
-        elif self.classifier_info['classifier'] in ['chaincrf', 'gridcrf']:
+        elif self.classifier_info["classifier"] in ["chaincrf", "gridcrf"]:
 
-            if self.classifier_info['classifier'] == 'chaincrf':
+            if self.classifier_info["classifier"] == "chaincrf":
 
-                self.p_vars, self.labels, self.p_vars_test = self._transform4crf(p_vars2reshape=self.p_vars,
-                                                                                 labels2reshape=self.labels,
-                                                                                 p_vars_test2reshape=self.p_vars_test)
+                self.p_vars, self.labels, self.p_vars_test = self._transform4crf(
+                    p_vars2reshape=self.p_vars,
+                    labels2reshape=self.labels,
+                    p_vars_test2reshape=self.p_vars_test,
+                )
 
             self.model.fit(self.p_vars, self.labels)
 
         # Scikit-learn models
         else:
 
-            if not hasattr(self.model, 'is_prefit_model'):
+            if not hasattr(self.model, "is_prefit_model"):
 
                 # Check if the model supports sample weights.
                 try:
@@ -5052,30 +6041,33 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 except:
                     argi = inspect.getfullargspec(self.model.fit)
 
-                if 'sample_weight' in argi.args:
+                if "sample_weight" in argi.args:
 
-                    self.model.fit(self.p_vars,
-                                   self.labels,
-                                   sample_weight=self.sample_weight)
+                    self.model.fit(
+                        self.p_vars, self.labels, sample_weight=self.sample_weight
+                    )
 
                 else:
 
-                    self.model.fit(self.p_vars,
-                                   self.labels)
+                    self.model.fit(self.p_vars, self.labels)
 
                 if self.calibrate_proba:
 
                     if self.n_samps >= 1000:
 
-                        self.model = calibration.CalibratedClassifierCV(base_estimator=copy(self.model),
-                                                                        method='isotonic',
-                                                                        cv='prefit')
+                        self.model = calibration.CalibratedClassifierCV(
+                            base_estimator=copy(self.model),
+                            method="isotonic",
+                            cv="prefit",
+                        )
 
                     else:
 
-                        self.model = calibration.CalibratedClassifierCV(base_estimator=copy(self.model),
-                                                                        method='sigmoid',
-                                                                        cv='prefit')
+                        self.model = calibration.CalibratedClassifierCV(
+                            base_estimator=copy(self.model),
+                            method="sigmoid",
+                            cv="prefit",
+                        )
 
                     # # Limit the test size.
                     # samp_thresh = 100000
@@ -5101,27 +6093,39 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                     #     p_vars_test_cal = self.p_vars_test
                     #     labels_test_cal = self.labels_test
 
-                    logger.info('  Calibrating a {MODEL} model ...'.format(MODEL=self.classifier_info['classifier']))
+                    logger.info(
+                        "  Calibrating a {MODEL} model ...".format(
+                            MODEL=self.classifier_info["classifier"]
+                        )
+                    )
 
                     # Calibrate the model on the test data.
                     if isinstance(self.calibrate_test, np.ndarray):
 
-                        assert self.calibrate_test.shape[0] == len(self.calibrate_labels) == len(self.calibrate_weights)
+                        assert (
+                            self.calibrate_test.shape[0]
+                            == len(self.calibrate_labels)
+                            == len(self.calibrate_weights)
+                        )
 
-                        self.model.fit(self.calibrate_test,
-                                       self.calibrate_labels,
-                                       sample_weight=self.calibrate_weights)
+                        self.model.fit(
+                            self.calibrate_test,
+                            self.calibrate_labels,
+                            sample_weight=self.calibrate_weights,
+                        )
 
                     else:
 
-                        self.model.fit(self.p_vars_test,
-                                       self.labels_test,
-                                       sample_weight=self.sample_weight_test)
+                        self.model.fit(
+                            self.p_vars_test,
+                            self.labels_test,
+                            sample_weight=self.sample_weight_test,
+                        )
 
                     feature_importances_ = None
 
                     # Keep the feature importances.
-                    if hasattr(self.model, 'feature_importances_'):
+                    if hasattr(self.model, "feature_importances_"):
                         feature_importances_ = copy(self.model.feature_importances_)
 
                     if isinstance(feature_importances_, np.ndarray):
@@ -5134,63 +6138,64 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
         if isinstance(self.output_model, str):
 
-            logger.info('  Saving model to file ...')
+            logger.info("  Saving model to file ...")
 
-            compress = ('zlib', 5) if self.compress_model else 0
+            compress = ("zlib", 5) if self.compress_model else 0
 
-            if 'CV' in self.classifier_info['classifier']:
+            if "CV" in self.classifier_info["classifier"]:
 
                 try:
 
                     self.model.save(self.output_model)
 
                     # Dump the parameters to a text file.
-                    joblib.dump([self.classifier_info,
-                                 self.model,
-                                 self.sample_info_dict],
-                                self.output_model,
-                                compress=compress,
-                                protocol=-1)
+                    joblib.dump(
+                        [self.classifier_info, self.model, self.sample_info_dict],
+                        self.output_model,
+                        compress=compress,
+                        protocol=-1,
+                    )
 
                 except:
 
-                    logger.error('  Could not save {} to file.'.format(self.output_model))
+                    logger.error(
+                        "  Could not save {} to file.".format(self.output_model)
+                    )
                     raise IOError
 
             else:
 
                 try:
 
-                    joblib.dump([self.classifier_info,
-                                 self.model,
-                                 self.sample_info_dict],
-                                self.output_model,
-                                compress=compress,
-                                protocol=-1)
+                    joblib.dump(
+                        [self.classifier_info, self.model, self.sample_info_dict],
+                        self.output_model,
+                        compress=compress,
+                        protocol=-1,
+                    )
 
                 except:
 
-                    logger.error('  Could not save {} to file.'.format(self.output_model))
+                    logger.error(
+                        "  Could not save {} to file.".format(self.output_model)
+                    )
                     raise IOError
 
             # Get test accuracy, if possible.
-            if hasattr(self, 'p_vars_test'):
+            if hasattr(self, "p_vars_test"):
 
                 if isinstance(self.p_vars_test, np.ndarray):
 
                     # try:
 
-                    self.test_accuracy(out_acc=self.out_acc,
-                                       discrete=self.discrete)
+                    self.test_accuracy(out_acc=self.out_acc, discrete=self.discrete)
 
                     # except:
                     #     logger.warning('  Could not perform model validation.')
 
-    def _transform4crf(self,
-                       p_vars2reshape=None,
-                       labels2reshape=None,
-                       p_vars_test2reshape=None):
-
+    def _transform4crf(
+        self, p_vars2reshape=None, labels2reshape=None, p_vars_test2reshape=None
+    ):
         """
         Transforms variables and labels for linear-chain Conditional Random Fields
 
@@ -5203,11 +6208,11 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         p_vars_r = None
         labels_r = None
         p_vars_test_r = None
-        constant = np.array([1.0], dtype='float64').reshape(1, 1)
+        constant = np.array([1.0], dtype="float64").reshape(1, 1)
 
         if isinstance(p_vars2reshape, np.ndarray):
 
-            if hasattr(self, 'n_feas'):
+            if hasattr(self, "n_feas"):
 
                 if isinstance(self.n_feas, int):
                     reshape_features = self.n_feas
@@ -5217,15 +6222,23 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             else:
                 reshape_features = p_vars2reshape.shape[1]
 
-            p_vars_r = np.array([np.hstack((pv_.reshape(1, reshape_features), constant))
-                                 for pv_ in p_vars2reshape], dtype='float64')
+            p_vars_r = np.array(
+                [
+                    np.hstack((pv_.reshape(1, reshape_features), constant))
+                    for pv_ in p_vars2reshape
+                ],
+                dtype="float64",
+            )
 
         if isinstance(labels2reshape, np.ndarray):
-            labels_r = np.array([np.array([label_], dtype='int64') for label_ in labels2reshape], dtype='int64')
+            labels_r = np.array(
+                [np.array([label_], dtype="int64") for label_ in labels2reshape],
+                dtype="int64",
+            )
 
         if isinstance(p_vars_test2reshape, np.ndarray):
 
-            if hasattr(self, 'n_feas'):
+            if hasattr(self, "n_feas"):
 
                 if isinstance(self.n_feas, int):
                     reshape_features = self.n_feas
@@ -5235,23 +6248,29 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             else:
                 reshape_features = p_vars_test2reshape.shape[1]
 
-            p_vars_test_r = np.array([np.hstack((pv_.reshape(1, reshape_features), constant))
-                                      for pv_ in p_vars_test2reshape], dtype='float64')
+            p_vars_test_r = np.array(
+                [
+                    np.hstack((pv_.reshape(1, reshape_features), constant))
+                    for pv_ in p_vars_test2reshape
+                ],
+                dtype="float64",
+            )
 
         return p_vars_r, labels_r, p_vars_test_r
 
-    def predict_array(self,
-                      array2predict,
-                      rows,
-                      cols,
-                      relax_probabilities=False,
-                      plr_window_size=5,
-                      plr_matrix=None,
-                      plr_iterations=3,
-                      morphology=False,
-                      do_not_morph=None,
-                      d_type='byte'):
-
+    def predict_array(
+        self,
+        array2predict,
+        rows,
+        cols,
+        relax_probabilities=False,
+        plr_window_size=5,
+        plr_matrix=None,
+        plr_iterations=3,
+        morphology=False,
+        do_not_morph=None,
+        d_type="byte",
+    ):
         """
         Makes predictions on an array
 
@@ -5275,72 +6294,79 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             Predictions as a 2d array
         """
 
-        if self.classifier_info['classifier'] in ['c5', 'cubist']:
+        if self.classifier_info["classifier"] in ["c5", "cubist"]:
 
-            features = ro.r.matrix(array2predict,
-                                   nrow=array2predict.shape[0],
-                                   ncol=array2predict.shape[1])
+            features = ro.r.matrix(
+                array2predict, nrow=array2predict.shape[0], ncol=array2predict.shape[1]
+            )
 
             features.colnames = StrVector(self.headers[:-1])
 
-            return _do_c5_cubist_predict(self.model, self.classifier_info['classifier'], features)
+            return _do_c5_cubist_predict(
+                self.model, self.classifier_info["classifier"], features
+            )
 
         else:
 
             if relax_probabilities:
 
-                return predict_scikit_probas_static(array2predict,
-                                                    self.model,
-                                                    rows,
-                                                    cols,
-                                                    0,
-                                                    0,
-                                                    rows,
-                                                    cols,
-                                                    morphology,
-                                                    do_not_morph,
-                                                    plr_matrix,
-                                                    plr_window_size,
-                                                    plr_iterations,
-                                                    self.d_type)
+                return predict_scikit_probas_static(
+                    array2predict,
+                    self.model,
+                    rows,
+                    cols,
+                    0,
+                    0,
+                    rows,
+                    cols,
+                    morphology,
+                    do_not_morph,
+                    plr_matrix,
+                    plr_window_size,
+                    plr_iterations,
+                    self.d_type,
+                )
 
             else:
-                return raster_tools.STORAGE_DICT_NUMPY[d_type](self.model.predict(array2predict).reshape(rows, cols))
+                return raster_tools.STORAGE_DICT_NUMPY[d_type](
+                    self.model.predict(array2predict).reshape(rows, cols)
+                )
 
-    def predict(self,
-                input_image,
-                output_image,
-                additional_layers=None,
-                band_check=-1,
-                bands=None,
-                ignore_feas=None,
-                in_stats=None,
-                in_model=None,
-                mask_background=None,
-                background_band=1,
-                background_value=0,
-                minimum_observations=0,
-                observation_band=0,
-                scale_factor=1.0,
-                row_block_size=1000,
-                col_block_size=1000,
-                n_jobs=-1,
-                n_jobs_vars=-1,
-                gdal_cache=256,
-                overwrite=False,
-                track_blocks=False,
-                predict_probs=False,
-                relax_probabilities=False,
-                plr_window_size=5,
-                plr_iterations=3,
-                plr_matrix=None,
-                write2blocks=False,
-                block_range=None,
-                morphology=False,
-                do_not_morph=None,
-                d_type='byte',
-                **kwargs):
-
+    def predict(
+        self,
+        input_image,
+        output_image,
+        additional_layers=None,
+        band_check=-1,
+        bands=None,
+        ignore_feas=None,
+        in_stats=None,
+        in_model=None,
+        mask_background=None,
+        background_band=1,
+        background_value=0,
+        minimum_observations=0,
+        observation_band=0,
+        scale_factor=1.0,
+        row_block_size=1000,
+        col_block_size=1000,
+        n_jobs=-1,
+        n_jobs_vars=-1,
+        gdal_cache=256,
+        overwrite=False,
+        track_blocks=False,
+        predict_probs=False,
+        relax_probabilities=False,
+        plr_window_size=5,
+        plr_iterations=3,
+        plr_matrix=None,
+        write2blocks=False,
+        block_range=None,
+        morphology=False,
+        do_not_morph=None,
+        d_type="byte",
+        **kwargs
+    ):
         """
         Applies a model to predict class labels
 
@@ -5349,7 +6375,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             output_image (str): The output image.
             additional_layers (Optional[list]): A list of additional images (layers) that are not part
                 of `input_image`.
-            band_check (Optional[int]): The band to check for 'no data'. Default is -1, or do not perform check. 
+            band_check (Optional[int]): The band to check for 'no data'. Default is -1, or do not perform check.
             bands (Optional[list]): A list of bands to open, otherwise opens all bands. Default is None.
             ignore_feas (Optional[list]): A list of features (band layers) to ignore. Default is an empty list,
                 or use all features.
@@ -5392,7 +6418,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 *If `morphology=True`, `d_type` is automatically set as 'byte'. For regression models, `d_type` is
                 automatically set as 'float32'.
             kwargs (Optional): Image read options passed to `mpglue.raster_tools.ropen.read`.
-            
+
         Returns:
             None, writes to `output_image`.
 
@@ -5461,25 +6487,29 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         if self.n_jobs == -1:
             self.n_jobs = joblib.cpu_count()
 
-        if not hasattr(self, 'classifier_info'):
+        if not hasattr(self, "classifier_info"):
 
-            logger.warning("""\
+            logger.warning(
+                """\
             
             There is no `classifier_info` object. Be sure to run `construct_model`
             or `construct_r_model` before running `predict`.
             
-            """)
+            """
+            )
 
             return
 
-        if not hasattr(self, 'model'):
+        if not hasattr(self, "model"):
 
-            logger.warning("""\
+            logger.warning(
+                """\
             
             There is no trained `model` object. Be sure to run `construct_model`
             or `construct_r_model` before running `predict`.
             
-            """)
+            """
+            )
 
             return
 
@@ -5487,40 +6517,50 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         self.output_image_base, self.output_image_ext = os.path.splitext(f_name)
 
         if not self.dir_name and not os.path.isabs(f_name):
-            self.dir_name = os.path.abspath('.')
+            self.dir_name = os.path.abspath(".")
 
         # Delete files
         if os.path.isfile(output_image) and self.overwrite and not self.write2blocks:
 
             os.remove(output_image)
 
-            for ext in ['.ovr', '.aux.xml']:
+            for ext in [".ovr", ".aux.xml"]:
 
-                if os.path.isfile(os.path.join(self.dir_name, '{}{}'.format(f_name, ext))):
-                    os.remove(os.path.join(self.dir_name, '{}{}'.format(f_name, ext)))
+                if os.path.isfile(
+                    os.path.join(self.dir_name, "{}{}".format(f_name, ext))
+                ):
+                    os.remove(os.path.join(self.dir_name, "{}{}".format(f_name, ext)))
 
-        self.out_image_temp = os.path.join(self.dir_name, '{}_temp.tif'.format(self.output_image_base))
-        self.temp_model_file = os.path.join(self.dir_name, 'temp_model_file.txt')
+        self.out_image_temp = os.path.join(
+            self.dir_name, "{}_temp.tif".format(self.output_image_base)
+        )
+        self.temp_model_file = os.path.join(self.dir_name, "temp_model_file.txt")
 
         if not os.path.isdir(self.dir_name):
             os.makedirs(self.dir_name)
 
         if self.write2blocks:
 
-            logger.info('  Predicting class labels from {} and writing to {} blocks ...'.format(self.input_image,
-                                                                                                self.output_image))
+            logger.info(
+                "  Predicting class labels from {} and writing to {} blocks ...".format(
+                    self.input_image, self.output_image
+                )
+            )
 
         else:
 
-            logger.info('  Predicting class labels from {} and writing to {} ...'.format(self.input_image,
-                                                                                         self.output_image))
+            logger.info(
+                "  Predicting class labels from {} and writing to {} ...".format(
+                    self.input_image, self.output_image
+                )
+            )
 
         # Conditional Random Fields
-        if self.classifier_info['classifier'] == 'gridcrf':
+        if self.classifier_info["classifier"] == "gridcrf":
             self._predict4crf(**self.kwargs)
 
         # Orfeo Toolbox application
-        elif 'OR' in self.classifier_info['classifier']:
+        elif "OR" in self.classifier_info["classifier"]:
             self._predict4orf()
 
         # Scikit-learn or OpenCV
@@ -5533,7 +6573,9 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             # Block record keeping.
             if self.track_blocks and not self.write2blocks:
 
-                self.record_keeping = os.path.join(self.dir_name, '{}_record.txt'.format(self.output_image_base))
+                self.record_keeping = os.path.join(
+                    self.dir_name, "{}_record.txt".format(self.output_image_base)
+                )
 
                 if os.path.isfile(self.record_keeping):
                     self.record_list = self.load(self.record_keeping)
@@ -5546,9 +6588,11 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             # OUTPUT BANDS
             if self.predict_probs:
 
-                if not hasattr(self.model, 'predict_proba'):
+                if not hasattr(self.model, "predict_proba"):
 
-                    logger.warning('  The model must have a `predict_proba` method to prediction class probabilities.')
+                    logger.warning(
+                        "  The model must have a `predict_proba` method to prediction class probabilities."
+                    )
                     return
 
                 self.o_info.bands = self.n_classes
@@ -5557,19 +6601,31 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 self.o_info.bands = 1
 
             # OUTPUT DATA TYPE
-            if self.predict_probs or (self.classifier_info['classifier'] in ['abr', 'abr-ex-dtr', 'bgr', 'bag-dtr',
-                                                                             'rfr', 'ex-rfr', 'svr', 'svra',
-                                                                             'cubist', 'dtr']):
+            if self.predict_probs or (
+                self.classifier_info["classifier"]
+                in [
+                    "abr",
+                    "abr-ex-dtr",
+                    "bgr",
+                    "bag-dtr",
+                    "rfr",
+                    "ex-rfr",
+                    "svr",
+                    "svra",
+                    "cubist",
+                    "dtr",
+                ]
+            ):
 
-                self.o_info.update_info(storage='float32')
-                self.d_type = 'float32'
+                self.o_info.update_info(storage="float32")
+                self.d_type = "float32"
 
             else:
 
                 if self.morphology:
 
-                    self.o_info.update_info(storage='byte')
-                    self.d_type = 'byte'
+                    self.o_info.update_info(storage="byte")
+                    self.d_type = "byte"
 
                 else:
                     self.o_info.update_info(storage=self.d_type)
@@ -5584,41 +6640,44 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
     def _predict4crf(self, **kwargs):
 
-        self.load4crf([self.input_image],
-                      None,
-                      bands=self.bands,
-                      scale_factor=self.scale_factor,
-                      n_jobs=self.n_jobs_vars,
-                      **kwargs)
+        self.load4crf(
+            [self.input_image],
+            None,
+            bands=self.bands,
+            scale_factor=self.scale_factor,
+            n_jobs=self.n_jobs_vars,
+            **kwargs
+        )
 
         with raster_tools.ropen(self.input_image) as i_info:
 
             o_info = i_info.copy()
 
             # Update the output information.
-            o_info.update_info(bands=1,
-                               storage='byte')
+            o_info.update_info(bands=1, storage="byte")
 
-            if 'j' in kwargs:
-                o_info.update_info(left=i_info.left + (kwargs['j'] * i_info.cellY))
+            if "j" in kwargs:
+                o_info.update_info(left=i_info.left + (kwargs["j"] * i_info.cellY))
 
-            if 'i' in kwargs:
-                o_info.update_info(top=i_info.top - (kwargs['i'] * i_info.cellY))
+            if "i" in kwargs:
+                o_info.update_info(top=i_info.top - (kwargs["i"] * i_info.cellY))
 
-            if 'rows' in kwargs:
-                o_info.update_info(rows=kwargs['rows'])
+            if "rows" in kwargs:
+                o_info.update_info(rows=kwargs["rows"])
 
-            if 'cols' in kwargs:
-                o_info.update_info(cols=kwargs['cols'])
+            if "cols" in kwargs:
+                o_info.update_info(cols=kwargs["cols"])
 
         del i_info
 
         # Make class predictions and write to file.
-        raster_tools.write2raster(np.array(self.model.predict(self.p_vars),
-                                           dtype='uint8').reshape(self.im_rows,
-                                                                  self.im_cols),
-                                  self.output_image,
-                                  o_info=o_info)
+        raster_tools.write2raster(
+            np.array(self.model.predict(self.p_vars), dtype="uint8").reshape(
+                self.im_rows, self.im_cols
+            ),
+            self.output_image,
+            o_info=o_info,
+        )
 
     def _predict4orf(self):
 
@@ -5627,42 +6686,54 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             if isinstance(self.mask_background, str):
 
-                com = 'otbcli_ImageClassifier -in {} -imstat {} \
-                                        -model {} -out {} -ram {:d}'.format(self.input_image,
-                                                                            self.in_stats,
-                                                                            self.in_model,
-                                                                            self.out_image_temp,
-                                                                            self.gdal_cache)
+                com = "otbcli_ImageClassifier -in {} -imstat {} \
+                                        -model {} -out {} -ram {:d}".format(
+                    self.input_image,
+                    self.in_stats,
+                    self.in_model,
+                    self.out_image_temp,
+                    self.gdal_cache,
+                )
 
             else:
-                com = 'otbcli_ImageClassifier -in {} -imstat {} \
-                                        -model {} -out {} -ram {:d}'.format(self.input_image,
-                                                                            self.in_stats,
-                                                                            self.in_model,
-                                                                            self.output_image,
-                                                                            self.gdal_cache)
+                com = "otbcli_ImageClassifier -in {} -imstat {} \
+                                        -model {} -out {} -ram {:d}".format(
+                    self.input_image,
+                    self.in_stats,
+                    self.in_model,
+                    self.output_image,
+                    self.gdal_cache,
+                )
 
         else:
 
             if isinstance(self.mask_background, str):
 
-                com = 'otbcli_ImageClassifier -in {} -model {} -out {} -ram {:d}'.format(self.input_image,
-                                                                                         self.in_model,
-                                                                                         self.out_image_temp,
-                                                                                         self.gdal_cache)
+                com = (
+                    "otbcli_ImageClassifier -in {} -model {} -out {} -ram {:d}".format(
+                        self.input_image,
+                        self.in_model,
+                        self.out_image_temp,
+                        self.gdal_cache,
+                    )
+                )
 
             else:
 
-                com = 'otbcli_ImageClassifier -in {} -model {} -out {} -ram {:d}'.format(self.input_image,
-                                                                                         self.in_model,
-                                                                                         self.output_image,
-                                                                                         self.gdal_cache)
+                com = (
+                    "otbcli_ImageClassifier -in {} -model {} -out {} -ram {:d}".format(
+                        self.input_image,
+                        self.in_model,
+                        self.output_image,
+                        self.gdal_cache,
+                    )
+                )
 
         try:
             subprocess.call(com, shell=True)
         except:
 
-            logger.warning('  Are you sure the Orfeo Toolbox is installed?')
+            logger.warning("  Are you sure the Orfeo Toolbox is installed?")
             return
 
         if isinstance(self.mask_background, str):
@@ -5704,12 +6775,9 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         jwo = 0
 
         # Update variables for sub-image predictions.
-        start_i, start_j, rows, cols, iwo, jwo = self._set_indexing(start_i,
-                                                                    start_j,
-                                                                    rows,
-                                                                    cols,
-                                                                    iwo,
-                                                                    jwo)
+        start_i, start_j, rows, cols, iwo, jwo = self._set_indexing(
+            start_i, start_j, rows, cols, iwo, jwo
+        )
 
         # Determine which bands to open.
         self._set_bands()
@@ -5718,8 +6786,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         #
         # *This will be overwritten in the
         #   event `write2blocks` is set as True.
-        self.o_info.update_info(rows=rows,
-                                cols=cols)
+        self.o_info.update_info(rows=rows, cols=cols)
 
         # Setup the object to write to.
         if not self.write2blocks:
@@ -5728,7 +6795,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             if self.predict_probs:
 
-                for cidx in range(1, len(mdl.classes_)+1):
+                for cidx in range(1, len(mdl.classes_) + 1):
 
                     out_raster_object.get_band(cidx)
                     out_raster_object.fill(0)
@@ -5738,20 +6805,17 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 out_raster_object.get_band(1)
                 out_raster_object.fill(0)
 
-        block_rows, block_cols = raster_tools.block_dimensions(rows,
-                                                               cols,
-                                                               row_block_size=self.row_block_size,
-                                                               col_block_size=self.col_block_size)
+        block_rows, block_cols = raster_tools.block_dimensions(
+            rows,
+            cols,
+            row_block_size=self.row_block_size,
+            col_block_size=self.col_block_size,
+        )
 
         # Determine the number of blocks in the image.
-        block_indices, n_blocks = self._set_n_blocks(start_i,
-                                                     start_j,
-                                                     iwo,
-                                                     jwo,
-                                                     rows,
-                                                     cols,
-                                                     block_rows,
-                                                     block_cols)
+        block_indices, n_blocks = self._set_n_blocks(
+            start_i, start_j, iwo, jwo, rows, cols, block_rows, block_cols
+        )
 
         n_block = 1
 
@@ -5768,12 +6832,14 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             ipadded = block_index[9]
             jpadded = block_index[10]
 
-            logger.info('  Block {:,d} of {:,d} ...'.format(n_block, n_blocks))
+            logger.info("  Block {:,d} of {:,d} ...".format(n_block, n_blocks))
 
             # Setup the object to write to.
             if self.write2blocks:
 
-                if isinstance(self.block_range, list) or isinstance(self.block_range, tuple):
+                if isinstance(self.block_range, list) or isinstance(
+                    self.block_range, tuple
+                ):
 
                     if n_block < self.block_range[0]:
 
@@ -5783,10 +6849,14 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                     if n_block > self.block_range[1]:
                         break
 
-                self.output_image = os.path.join(self.dir_name,
-                                                 '{BASE}_{BLOCK:05d}{EXT}'.format(BASE=self.output_image_base,
-                                                                                  BLOCK=n_block,
-                                                                                  EXT=self.output_image_ext))
+                self.output_image = os.path.join(
+                    self.dir_name,
+                    "{BASE}_{BLOCK:05d}{EXT}".format(
+                        BASE=self.output_image_base,
+                        BLOCK=n_block,
+                        EXT=self.output_image_ext,
+                    ),
+                )
 
                 if os.path.isfile(self.output_image):
 
@@ -5800,10 +6870,12 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 # Update the output image
                 #   information for the
                 #   current block.
-                self.o_info.update_info(top=image_top - (i*self.o_info.cellY),
-                                        left=image_left + (j*self.o_info.cellY),
-                                        rows=n_rows,
-                                        cols=n_cols)
+                self.o_info.update_info(
+                    top=image_top - (i * self.o_info.cellY),
+                    left=image_left + (j * self.o_info.cellY),
+                    rows=n_rows,
+                    cols=n_cols,
+                )
 
                 iwo = i
                 jwo = j
@@ -5821,7 +6893,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                 if n_block in self.record_list:
 
-                    logger.info('  Skipping current block ...')
+                    logger.info("  Skipping current block ...")
                     continue
 
             # Check for zeros in the block.
@@ -5832,11 +6904,9 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                     self.i_info = raster_tools.ropen(self.input_image)
                     self.open_image = False
 
-                max_check = self.i_info.read(bands=self.band_check,
-                                             i=i,
-                                             j=j,
-                                             rows=n_rows,
-                                             cols=n_cols).max()
+                max_check = self.i_info.read(
+                    bands=self.band_check, i=i, j=j, rows=n_rows, cols=n_cols
+                ).max()
 
                 if max_check == 0:
 
@@ -5855,43 +6925,53 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 self.i_info.close()
                 self.open_image = True
 
-            if 'CV' in self.classifier_info['classifier']:
+            if "CV" in self.classifier_info["classifier"]:
 
                 if len(self.bands) != self.model.getVarCount():
 
-                    logger.error('  The number of predictive layers does not match the number of model estimators.')
+                    logger.error(
+                        "  The number of predictive layers does not match the number of model estimators."
+                    )
                     raise AssertionError
 
-            elif (self.classifier_info['classifier'] not in ['c5', 'cubist', 'qda', 'chaincrf']) and \
-                    ('CV' not in self.classifier_info['classifier']):
+            elif (
+                self.classifier_info["classifier"]
+                not in ["c5", "cubist", "qda", "chaincrf"]
+            ) and ("CV" not in self.classifier_info["classifier"]):
 
-                if hasattr(self.model, 'n_features_'):
+                if hasattr(self.model, "n_features_"):
 
                     if len(self.bands) != self.model.n_features_:
 
-                        logger.error('  The number of predictive layers does not match the number of model estimators.')
+                        logger.error(
+                            "  The number of predictive layers does not match the number of model estimators."
+                        )
                         raise AssertionError
 
-                if hasattr(self.model, 'base_estimator'):
+                if hasattr(self.model, "base_estimator"):
 
-                    if hasattr(self.model.base_estimator, 'n_features_'):
+                    if hasattr(self.model.base_estimator, "n_features_"):
 
                         if len(self.bands) != self.model.base_estimator.n_features_:
 
-                            logger.error('  The number of predictive layers does not match the number of model estimators.')
+                            logger.error(
+                                "  The number of predictive layers does not match the number of model estimators."
+                            )
                             raise AssertionError
 
             # Get all the bands for the tile. The shape
             #   of the features is ([rows x columns] x features).
-            features = raster_tools.read(file_name=self.input_image,
-                                         bands=self.bands,
-                                         i=iw,
-                                         j=jw,
-                                         rows=rw,
-                                         cols=cw,
-                                         predictions=True,
-                                         d_type='float64',
-                                         n_jobs=self.n_jobs_vars)
+            features = raster_tools.read(
+                file_name=self.input_image,
+                bands=self.bands,
+                i=iw,
+                j=jw,
+                rows=rw,
+                cols=cw,
+                predictions=True,
+                d_type="float64",
+                n_jobs=self.n_jobs_vars,
+            )
 
             n_samples = rw * cw
 
@@ -5901,12 +6981,10 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 x_coordinates, y_coordinates = self._create_indices(iw, jw, rw, cw)
 
                 # Append the x,y coordinates to the features.
-                features = np.hstack((features,
-                                      x_coordinates,
-                                      y_coordinates))
+                features = np.hstack((features, x_coordinates, y_coordinates))
 
             # Reshape the features for CRF models.
-            if self.classifier_info['classifier'] == 'chaincrf':
+            if self.classifier_info["classifier"] == "chaincrf":
                 features = self._transform4crf(p_vars2reshape=features)[0]
             else:
 
@@ -5922,8 +7000,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                 additional_layers = self._get_additional_layers(iw, jw, rw, cw)
 
-                features = np.hstack((features,
-                                      additional_layers))
+                features = np.hstack((features, additional_layers))
 
             # Add extra predictive
             #   time series features.
@@ -5932,20 +7009,24 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 if not self.ts_indices:
 
                     if self.use_xy:
-                        self.ts_indices = np.array(range(0, features.shape[1]-2), dtype='int64')
+                        self.ts_indices = np.array(
+                            range(0, features.shape[1] - 2), dtype="int64"
+                        )
 
-                features = self.feature_object.apply_features(X=features,
-                                                              ts_indices=self.ts_indices,
-                                                              append_features=self.append_features)
+                features = self.feature_object.apply_features(
+                    X=features,
+                    ts_indices=self.ts_indices,
+                    append_features=self.append_features,
+                )
 
             features[np.isnan(features) | np.isinf(features)] = 0.0
 
             # Get locations of empty features
             null_samples = np.where(features.max(axis=1).reshape(rw, cw) == 0)
 
-            if 'CV' in self.classifier_info['classifier']:
+            if "CV" in self.classifier_info["classifier"]:
 
-                if self.classifier_info['classifier'] == 'cvmlp':
+                if self.classifier_info["classifier"] == "cvmlp":
 
                     self.model.predict(features, predicted)
 
@@ -5957,35 +7038,43 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                     #   passing it to the joblib workers.
                     # predicted = np.empty((n_samples, 1), dtype='uint8')
 
-                    predicted = joblib.Parallel(n_jobs=self.n_jobs,
-                                                max_nbytes=None)(joblib.delayed(predict_cv)(chunk,
-                                                                                            self.chunk_size,
-                                                                                            self.file_name,
-                                                                                            self.perc_samp,
-                                                                                            self.classes2remove,
-                                                                                            self.ignore_feas,
-                                                                                            self.use_xy,
-                                                                                            self.classifier_info,
-                                                                                            self.weight_classes)
-                                                                 for chunk in range(0, n_samples, self.chunk_size))
+                    predicted = joblib.Parallel(n_jobs=self.n_jobs, max_nbytes=None)(
+                        joblib.delayed(predict_cv)(
+                            chunk,
+                            self.chunk_size,
+                            self.file_name,
+                            self.perc_samp,
+                            self.classes2remove,
+                            self.ignore_feas,
+                            self.use_xy,
+                            self.classifier_info,
+                            self.weight_classes,
+                        )
+                        for chunk in range(0, n_samples, self.chunk_size)
+                    )
 
                 # transpose and reshape the predicted labels to (rows x columns)
-                out_raster_object.write_array(np.array(list(itertools.chain.from_iterable(predicted))).reshape(n_rows,
-                                                                                                               n_cols),
-                                              j=j-jwo,
-                                              i=i-iwo)
+                out_raster_object.write_array(
+                    np.array(list(itertools.chain.from_iterable(predicted))).reshape(
+                        n_rows, n_cols
+                    ),
+                    j=j - jwo,
+                    i=i - iwo,
+                )
 
-            elif self.classifier_info['classifier'] in ['c5', 'cubist']:
+            elif self.classifier_info["classifier"] in ["c5", "cubist"]:
 
                 # Load the predictor variables.
                 # predict_samps = pandas2ri.py2ri(pd.DataFrame(features))
 
-                predict_samps = ro.r.matrix(features, nrow=n_samples, ncol=len(self.bands))
+                predict_samps = ro.r.matrix(
+                    features, nrow=n_samples, ncol=len(self.bands)
+                )
                 predict_samps.colnames = StrVector(self.headers[:-1])
 
                 # Get chunks for parallel processing.
                 indice_pairs = list()
-                for i_ in range(1, n_samples+1, self.chunk_size):
+                for i_ in range(1, n_samples + 1, self.chunk_size):
 
                     n_rows_ = self._num_rows_cols(i_, self.chunk_size, n_samples)
                     indice_pairs.append([i_, n_rows_])
@@ -5995,25 +7084,31 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 # Make the predictions and convert to a NumPy array.
                 if isinstance(self.input_model, str):
 
-                    predicted = joblib.Parallel(n_jobs=self.n_jobs,
-                                                max_nbytes=None)(joblib.delayed(predict_c5_cubist)(self.input_model,
-                                                                                                   ip)
-                                                                 for ip in indice_pairs)
+                    predicted = joblib.Parallel(n_jobs=self.n_jobs, max_nbytes=None)(
+                        joblib.delayed(predict_c5_cubist)(self.input_model, ip)
+                        for ip in indice_pairs
+                    )
 
                     # Write the predictions to file.
-                    out_raster_object.write_array(np.array(list(itertools.chain.from_iterable(predicted))).reshape(n_rows,
-                                                                                                                   n_cols),
-                                                  j=j-jwo,
-                                                  i=i-iwo)
+                    out_raster_object.write_array(
+                        np.array(
+                            list(itertools.chain.from_iterable(predicted))
+                        ).reshape(n_rows, n_cols),
+                        j=j - jwo,
+                        i=i - iwo,
+                    )
 
                 else:
 
-                    out_raster_object.write_array(_do_c5_cubist_predict(self.model,
-                                                                        self.classifier_info['classifier'],
-                                                                        predict_samps).reshape(n_rows,
-                                                                                               n_cols),
-                                                  j=j-jwo,
-                                                  i=i-iwo)
+                    out_raster_object.write_array(
+                        _do_c5_cubist_predict(
+                            self.model,
+                            self.classifier_info["classifier"],
+                            predict_samps,
+                        ).reshape(n_rows, n_cols),
+                        j=j - jwo,
+                        i=i - iwo,
+                    )
 
             else:
 
@@ -6028,49 +7123,54 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                     if self.predict_probs:
 
                         # Predict class conditional probabilities.
-                        predicted = predict_scikit_probas(rw,
-                                                          cw,
-                                                          ipadded,
-                                                          jpadded,
-                                                          n_rows,
-                                                          n_cols,
-                                                          self.morphology,
-                                                          self.do_not_morph,
-                                                          self.relax_probabilities,
-                                                          self.plr_matrix,
-                                                          self.plr_window_size,
-                                                          self.plr_iterations,
-                                                          self.predict_probs,
-                                                          self.d_type,
-                                                          null_samples)
+                        predicted = predict_scikit_probas(
+                            rw,
+                            cw,
+                            ipadded,
+                            jpadded,
+                            n_rows,
+                            n_cols,
+                            self.morphology,
+                            self.do_not_morph,
+                            self.relax_probabilities,
+                            self.plr_matrix,
+                            self.plr_window_size,
+                            self.plr_iterations,
+                            self.predict_probs,
+                            self.d_type,
+                            null_samples,
+                        )
 
                         for cidx in range(0, predicted.shape[0]):
 
-                            out_raster_object.write_array(predicted[cidx],
-                                                          i=i-iwo,
-                                                          j=j-jwo,
-                                                          band=cidx+1)
+                            out_raster_object.write_array(
+                                predicted[cidx], i=i - iwo, j=j - jwo, band=cidx + 1
+                            )
 
                     else:
 
                         # Write the predictions to file.
-                        out_raster_object.write_array(predict_scikit_probas(rw,
-                                                                            cw,
-                                                                            ipadded,
-                                                                            jpadded,
-                                                                            n_rows,
-                                                                            n_cols,
-                                                                            self.morphology,
-                                                                            self.do_not_morph,
-                                                                            self.relax_probabilities,
-                                                                            self.plr_matrix,
-                                                                            self.plr_window_size,
-                                                                            self.plr_iterations,
-                                                                            self.predict_probs,
-                                                                            self.d_type,
-                                                                            null_samples),
-                                                      j=j-jwo,
-                                                      i=i-iwo)
+                        out_raster_object.write_array(
+                            predict_scikit_probas(
+                                rw,
+                                cw,
+                                ipadded,
+                                jpadded,
+                                n_rows,
+                                n_cols,
+                                self.morphology,
+                                self.do_not_morph,
+                                self.relax_probabilities,
+                                self.plr_matrix,
+                                self.plr_window_size,
+                                self.plr_iterations,
+                                self.predict_probs,
+                                self.d_type,
+                                null_samples,
+                            ),
+                            j=j - jwo,
+                            i=i - iwo,
+                        )
 
                 else:
 
@@ -6126,49 +7226,65 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                         if isinstance(self.do_not_morph, list):
 
-                            predictions = np.uint8(mdl.predict(features).reshape(rw, cw))
+                            predictions = np.uint8(
+                                mdl.predict(features).reshape(rw, cw)
+                            )
 
-                            predictions_copy = predictions[ipadded:ipadded+n_rows,
-                                                           jpadded:jpadded+n_cols].copy()
+                            predictions_copy = predictions[
+                                ipadded : ipadded + n_rows, jpadded : jpadded + n_cols
+                            ].copy()
 
-                            predictions = pymorph.closerec(pymorph.closerec(predictions,
-                                                                            Bdil=pymorph.secross(r=3),
-                                                                            Bc=pymorph.secross(r=1)),
-                                                           Bdil=pymorph.secross(r=2),
-                                                           Bc=pymorph.secross(r=1))[ipadded:ipadded+n_rows,
-                                                                                    jpadded:jpadded+n_cols]
+                            predictions = pymorph.closerec(
+                                pymorph.closerec(
+                                    predictions,
+                                    Bdil=pymorph.secross(r=3),
+                                    Bc=pymorph.secross(r=1),
+                                ),
+                                Bdil=pymorph.secross(r=2),
+                                Bc=pymorph.secross(r=1),
+                            )[ipadded : ipadded + n_rows, jpadded : jpadded + n_cols]
 
                             for do_not_morph_value in self.do_not_morph:
-                                predictions[predictions_copy == do_not_morph_value] = do_not_morph_value
+                                predictions[predictions_copy == do_not_morph_value] = (
+                                    do_not_morph_value
+                                )
 
                             del predictions_copy
 
-                            out_raster_object.write_array(predictions,
-                                                          j=j-jwo,
-                                                          i=i-iwo)
+                            out_raster_object.write_array(
+                                predictions, j=j - jwo, i=i - iwo
+                            )
 
                             del predictions
 
                         else:
 
                             out_raster_object.write_array(
-                                pymorph.closerec(pymorph.closerec(np.uint8(mdl.predict(features).reshape(rw, cw)),
-                                                                  Bdil=pymorph.secross(r=3),
-                                                                  Bc=pymorph.secross(r=1)),
-                                                 Bdil=pymorph.secross(r=2),
-                                                 Bc=pymorph.secross(r=1))[ipadded:ipadded+n_rows,
-                                                                          jpadded:jpadded+n_cols],
-                                j=j-jwo,
-                                i=i-iwo)
+                                pymorph.closerec(
+                                    pymorph.closerec(
+                                        np.uint8(mdl.predict(features).reshape(rw, cw)),
+                                        Bdil=pymorph.secross(r=3),
+                                        Bc=pymorph.secross(r=1),
+                                    ),
+                                    Bdil=pymorph.secross(r=2),
+                                    Bc=pymorph.secross(r=1),
+                                )[
+                                    ipadded : ipadded + n_rows,
+                                    jpadded : jpadded + n_cols,
+                                ],
+                                j=j - jwo,
+                                i=i - iwo,
+                            )
 
                     else:
 
                         np_dtype = raster_tools.STORAGE_DICT_NUMPY[self.d_type]
 
-                        out_raster_object.write_array(np_dtype(mdl.predict(features).reshape(n_rows,
-                                                                                             n_cols)),
-                                                      j=j-jwo,
-                                                      i=i-iwo)
+                        out_raster_object.write_array(
+                            np_dtype(mdl.predict(features).reshape(n_rows, n_cols)),
+                            j=j - jwo,
+                            i=i - iwo,
+                        )
 
             features = None
 
@@ -6185,8 +7301,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 if os.path.isfile(self.record_keeping):
                     os.remove(self.record_keeping)
 
-                self.dump(self.record_list,
-                          self.record_keeping)
+                self.dump(self.record_list, self.record_keeping)
 
         # Close the file.
         if not self.write2blocks:
@@ -6195,112 +7310,121 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                 for cidx in range(0, len(mdl.classes_)):
 
-                    out_raster_object.get_band(cidx+1)
+                    out_raster_object.get_band(cidx + 1)
                     out_raster_object.close_band()
 
             out_raster_object.close_all()
             out_raster_object = None
 
-        if isinstance(self.mask_background, str) or isinstance(self.mask_background, np.ndarray):
+        if isinstance(self.mask_background, str) or isinstance(
+            self.mask_background, np.ndarray
+        ):
             self._mask_background()
 
     def _set_indexing(self, start_i, start_j, rows, cols, iwo, jwo):
 
         if self.kwargs:
 
-            if ('i' in self.kwargs) and ('y' not in self.kwargs):
+            if ("i" in self.kwargs) and ("y" not in self.kwargs):
 
-                start_i = self.kwargs['i']
-                self.o_info.update_info(top=self.o_info.top - (start_i*self.o_info.cellY))
+                start_i = self.kwargs["i"]
+                self.o_info.update_info(
+                    top=self.o_info.top - (start_i * self.o_info.cellY)
+                )
                 iwo = start_i
 
-            elif ('i' not in self.kwargs) and ('y' in self.kwargs):
+            elif ("i" not in self.kwargs) and ("y" in self.kwargs):
 
                 # Index the image by x, y coordinates (in map units).
-                self.kwargs['i'] = vector_tools.get_xy_offsets(self.i_info,
-                                                               x=999.,
-                                                               y=self.kwargs['y'],
-                                                               check_position=False)[3]
+                self.kwargs["i"] = vector_tools.get_xy_offsets(
+                    self.i_info, x=999.0, y=self.kwargs["y"], check_position=False
+                )[3]
 
-                start_i = self.kwargs['i']
-                self.o_info.update_info(top=self.o_info.top - (start_i*self.o_info.cellY))
+                start_i = self.kwargs["i"]
+                self.o_info.update_info(
+                    top=self.o_info.top - (start_i * self.o_info.cellY)
+                )
                 iwo = start_i
 
-            if ('j' in self.kwargs) and ('x' not in self.kwargs):
+            if ("j" in self.kwargs) and ("x" not in self.kwargs):
 
-                start_j = self.kwargs['j']
-                self.o_info.update_info(left=self.o_info.left + (start_j*self.o_info.cellY))
+                start_j = self.kwargs["j"]
+                self.o_info.update_info(
+                    left=self.o_info.left + (start_j * self.o_info.cellY)
+                )
                 jwo = start_j
 
-            elif ('j' not in self.kwargs) and ('x' in self.kwargs):
+            elif ("j" not in self.kwargs) and ("x" in self.kwargs):
 
                 # Index the image by x, y coordinates (in map units).
-                self.kwargs['j'] = vector_tools.get_xy_offsets(self.i_info,
-                                                               x=self.kwargs['x'],
-                                                               y=999.,
-                                                               check_position=False)[2]
+                self.kwargs["j"] = vector_tools.get_xy_offsets(
+                    self.i_info, x=self.kwargs["x"], y=999.0, check_position=False
+                )[2]
 
-                start_j = self.kwargs['j']
-                self.o_info.update_info(left=self.o_info.left + (start_j*self.o_info.cellY))
+                start_j = self.kwargs["j"]
+                self.o_info.update_info(
+                    left=self.o_info.left + (start_j * self.o_info.cellY)
+                )
                 jwo = start_j
 
-            if 'rows' in self.kwargs:
+            if "rows" in self.kwargs:
 
-                if self.kwargs['rows'] != -1:
-                    rows = self.kwargs['rows']
+                if self.kwargs["rows"] != -1:
+                    rows = self.kwargs["rows"]
 
-            if 'cols' in self.kwargs:
+            if "cols" in self.kwargs:
 
-                if self.kwargs['cols'] != -1:
-                    cols = self.kwargs['cols']
+                if self.kwargs["cols"] != -1:
+                    cols = self.kwargs["cols"]
 
         return start_i, start_j, rows, cols, iwo, jwo
 
     def _set_bands(self):
-
         """Sets the list of (feature) bands to open"""
 
         if self.ignore_feas:
-            self.bands = sorted([bd for bd in range(1, self.i_info.bands+1) if bd not in self.ignore_feas])
+            self.bands = sorted(
+                [
+                    bd
+                    for bd in range(1, self.i_info.bands + 1)
+                    if bd not in self.ignore_feas
+                ]
+            )
         else:
 
             if not isinstance(self.bands, list):
-                self.bands = list(range(1, self.i_info.bands+1))
+                self.bands = list(range(1, self.i_info.bands + 1))
 
     def _set_output_object(self):
-
         """Creates the raster object to write to"""
 
         if self.predict_probs:
 
-            return raster_tools.create_raster(self.output_image,
-                                              self.o_info,
-                                              compress='none',
-                                              tile=False,
-                                              bigtiff='yes')
+            return raster_tools.create_raster(
+                self.output_image,
+                self.o_info,
+                compress="none",
+                tile=False,
+                bigtiff="yes",
+            )
 
-        elif isinstance(self.mask_background, str) or isinstance(self.mask_background, np.ndarray):
+        elif isinstance(self.mask_background, str) or isinstance(
+            self.mask_background, np.ndarray
+        ):
 
-            return raster_tools.create_raster(self.out_image_temp,
-                                              self.o_info,
-                                              compress='none',
-                                              tile=False)
+            return raster_tools.create_raster(
+                self.out_image_temp, self.o_info, compress="none", tile=False
+            )
 
         else:
 
-            return raster_tools.create_raster(self.output_image,
-                                              self.o_info,
-                                              tile=False)
+            return raster_tools.create_raster(
+                self.output_image, self.o_info, tile=False
+            )
 
-    def _set_n_blocks(self,
-                      start_i,
-                      start_j,
-                      iwo,
-                      jwo,
-                      rows,
-                      cols,
-                      block_rows,
-                      block_cols):
+    def _set_n_blocks(
+        self, start_i, start_j, iwo, jwo, rows, cols, block_rows, block_cols
+    ):
 
         if self.relax_probabilities or self.morphology:
             pad = self.plr_window_size  # int(self.plr_window_size / 2.0)
@@ -6311,33 +7435,46 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
         n_blocks = 0
 
-        for i_ in range(start_i, rows+iwo, block_rows):
+        for i_ in range(start_i, rows + iwo, block_rows):
 
-            n_rows_ = self._num_rows_cols(i_, block_rows, rows+iwo)
+            n_rows_ = self._num_rows_cols(i_, block_rows, rows + iwo)
 
             # Always =i if pad=0
             iw_ = 0 if i_ == 0 else i_ - pad
             ipadded_ = i_ - iw_
             rww_ = n_rows_ + pad if iw_ == 0 else n_rows_ + (pad * 2)
-            rw_ = self._num_rows_cols(iw_, rww_, rows+iwo)
+            rw_ = self._num_rows_cols(iw_, rww_, rows + iwo)
 
-            for j_ in range(start_j, cols+jwo, block_cols):
+            for j_ in range(start_j, cols + jwo, block_cols):
 
-                n_cols_ = self._num_rows_cols(j_, block_cols, cols+jwo)
+                n_cols_ = self._num_rows_cols(j_, block_cols, cols + jwo)
 
                 jw_ = 0 if j_ == 0 else j_ - pad
                 jpadded_ = j_ - jw_
                 cww_ = n_cols_ + pad if jw_ == 0 else n_cols_ + (pad * 2)
-                cw_ = self._num_rows_cols(jw_, cww_, cols+iwo)
+                cw_ = self._num_rows_cols(jw_, cww_, cols + iwo)
 
-                block_indices.append((i_, j_, n_rows_, n_cols_, iw_, jw_, rw_, cw_, pad, ipadded_, jpadded_))
+                block_indices.append(
+                    (
+                        i_,
+                        j_,
+                        n_rows_,
+                        n_cols_,
+                        iw_,
+                        jw_,
+                        rw_,
+                        cw_,
+                        pad,
+                        ipadded_,
+                        jpadded_,
+                    )
+                )
 
                 n_blocks += 1
 
         return block_indices, n_blocks
 
     def _mask_background(self):
-
         """
         Recodes background values to zeros
 
@@ -6351,21 +7488,22 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         with raster_tools.ropen(self.out_image_temp) as m_info:
 
             m_info.get_band(1)
-            m_info.storage = 'byte'
+            m_info.storage = "byte"
 
-            out_rst_object = raster_tools.create_raster(self.output_image,
-                                                        m_info,
-                                                        compress='none',
-                                                        tile=False)
+            out_rst_object = raster_tools.create_raster(
+                self.output_image, m_info, compress="none", tile=False
+            )
 
             out_rst_object.get_band(1)
 
             b_rows, b_cols = m_info.rows, m_info.cols
 
-            block_rows, block_cols = raster_tools.block_dimensions(b_rows,
-                                                                   b_cols,
-                                                                   row_block_size=self.row_block_size,
-                                                                   col_block_size=self.col_block_size)
+            block_rows, block_cols = raster_tools.block_dimensions(
+                b_rows,
+                b_cols,
+                row_block_size=self.row_block_size,
+                col_block_size=self.col_block_size,
+            )
 
             for i in range(0, b_rows, block_rows):
 
@@ -6375,38 +7513,40 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                     n_cols = self._num_rows_cols(j, block_cols, b_cols)
 
-                    m_array = m_info.read(i=i,
-                                          j=j,
-                                          rows=n_rows,
-                                          cols=n_cols,
-                                          d_type='byte')
+                    m_array = m_info.read(
+                        i=i, j=j, rows=n_rows, cols=n_cols, d_type="byte"
+                    )
 
                     # Get the background array.
                     if isinstance(self.mask_background, str):
 
-                        b_array = raster_tools.read(i_info=b_info,
-                                                    bands=self.background_band,
-                                                    x=m_info.left+(j*m_info.cell.Y),
-                                                    y=m_info.top-(i*m_info.cellY),
-                                                    rows=n_rows,
-                                                    cols=n_cols,
-                                                    d_type='byte')
+                        b_array = raster_tools.read(
+                            i_info=b_info,
+                            bands=self.background_band,
+                            x=m_info.left + (j * m_info.cell.Y),
+                            y=m_info.top - (i * m_info.cellY),
+                            rows=n_rows,
+                            cols=n_cols,
+                            d_type="byte",
+                        )
 
                     else:
-                        b_array = self.mask_background[i:i+n_rows, j:j+n_cols]
+                        b_array = self.mask_background[i : i + n_rows, j : j + n_cols]
 
                     m_array[b_array == self.background_value] = 0
 
                     if self.minimum_observations > 0:
 
                         # Get the observation counts array.
-                        observation_array = raster_tools.read(i_info=b_info,
-                                                              bands=self.observation_band,
-                                                              i=i,
-                                                              j=j,
-                                                              rows=n_rows,
-                                                              cols=n_cols,
-                                                              d_type='byte')
+                        observation_array = raster_tools.read(
+                            i_info=b_info,
+                            bands=self.observation_band,
+                            i=i,
+                            j=j,
+                            rows=n_rows,
+                            cols=n_cols,
+                            d_type="byte",
+                        )
 
                         m_array[observation_array < self.minimum_observations] = 0
 
@@ -6426,7 +7566,11 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
     @staticmethod
     def _num_rows_cols(pixel_index, block_size, rows_cols):
-        return block_size if (pixel_index + block_size) < rows_cols else rows_cols - pixel_index
+        return (
+            block_size
+            if (pixel_index + block_size) < rows_cols
+            else rows_cols - pixel_index
+        )
 
     def _get_feas(self, img_obj_list, i, j, n_rows, n_cols):
 
@@ -6445,7 +7589,9 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             if iol[-1]:
 
-                __, __, start_j, start_i = vector_tools.get_xy_offsets(image_info=self.i_info, xy_info=iol[1])
+                __, __, start_j, start_i = vector_tools.get_xy_offsets(
+                    image_info=self.i_info, xy_info=iol[1]
+                )
 
             else:
 
@@ -6468,7 +7614,11 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             #
             # else:
 
-            feature_arrays.append(iol[0].ReadAsArray(start_j+j, start_i+i, n_cols, n_rows).astype(np.float32))
+            feature_arrays.append(
+                iol[0]
+                .ReadAsArray(start_j + j, start_i + i, n_cols, n_rows)
+                .astype(np.float32)
+            )
 
         return np.vstack(feature_arrays).reshape(self.i_info.bands, n_rows, n_cols)
 
@@ -6477,7 +7627,6 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         #                   range(0, self.i_info.bands)]).reshape(self.i_info.bands, n_rows, n_cols)
 
     def _get_additional_layers(self, i, j, n_rows, n_cols):
-
         """
         Gets additional image layers
 
@@ -6496,31 +7645,23 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                 if isinstance(additional_stack, np.ndarray):
 
-                    additional_stack_ = a_info.read(bands=-1,
-                                                    i=i,
-                                                    j=j,
-                                                    rows=n_rows,
-                                                    cols=n_cols,
-                                                    d_type='float32').ravel()[:, np.newaxis]
+                    additional_stack_ = a_info.read(
+                        bands=-1, i=i, j=j, rows=n_rows, cols=n_cols, d_type="float32"
+                    ).ravel()[:, np.newaxis]
 
-                    additional_stack = np.hstack((additional_stack,
-                                                  additional_stack_))
+                    additional_stack = np.hstack((additional_stack, additional_stack_))
 
                 else:
 
-                    additional_stack = a_info.read(bands=-1,
-                                                   i=i,
-                                                   j=j,
-                                                   rows=n_rows,
-                                                   cols=n_cols,
-                                                   d_type='float32').ravel()[:, np.newaxis]
+                    additional_stack = a_info.read(
+                        bands=-1, i=i, j=j, rows=n_rows, cols=n_cols, d_type="float32"
+                    ).ravel()[:, np.newaxis]
 
             a_info = None
 
         return additional_stack
 
     def _create_indices(self, i, j, n_rows, n_cols):
-
         """
         Creates x,y coordinate indices
 
@@ -6535,32 +7676,36 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         top = self.i_info.top - (i * self.i_info.cellY)
 
         # Create the longitudes
-        x_coordinates = np.arange(left,
-                                  left + (self.i_info.cellY * n_cols),
-                                  self.i_info.cellY)
+        x_coordinates = np.arange(
+            left, left + (self.i_info.cellY * n_cols), self.i_info.cellY
+        )
 
         x_coordinates = np.tile(x_coordinates, n_rows).reshape(n_rows, n_cols)
 
         # Create latitudes
-        y_coordinates = np.arange(top,
-                                  top - (self.i_info.cellY * n_rows),
-                                  -self.i_info.cellY).reshape(n_rows, 1)
+        y_coordinates = np.arange(
+            top, top - (self.i_info.cellY * n_rows), -self.i_info.cellY
+        ).reshape(n_rows, 1)
 
         y_coordinates = np.tile(y_coordinates, n_cols)
 
-        return x_coordinates.ravel()[:, np.newaxis], y_coordinates.ravel()[:, np.newaxis]
+        return (
+            x_coordinates.ravel()[:, np.newaxis],
+            y_coordinates.ravel()[:, np.newaxis],
+        )
 
     @staticmethod
     def _get_slope(elevation_array, pad=50):
 
-        elevation_array = cv2.copyMakeBorder(elevation_array, pad, pad, pad, pad, cv2.BORDER_REFLECT)
+        elevation_array = cv2.copyMakeBorder(
+            elevation_array, pad, pad, pad, pad, cv2.BORDER_REFLECT
+        )
 
         x_grad, y_grad = np.gradient(elevation_array)
 
         return (np.pi / 2.0) - np.arctan(np.sqrt((x_grad * x_grad) + (y_grad * y_grad)))
 
     def test_accuracy(self, out_acc=None, discrete=True, be_quiet=False):
-
         """
         Tests the accuracy of a model (a model must be trained or loaded).
 
@@ -6579,34 +7724,45 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             >>> print(cl.emat.accuracy)
         """
 
-        if self.classifier_info['classifier'] == 'cvmlp':
+        if self.classifier_info["classifier"] == "cvmlp":
 
-            test_labs_pred = np.empty((self.p_vars_test_rows, self.n_classes), dtype='uint8')
+            test_labs_pred = np.empty(
+                (self.p_vars_test_rows, self.n_classes), dtype="uint8"
+            )
             self.model.predict(self.p_vars_test, test_labs_pred)
             test_labs_pred = np.argmax(test_labs_pred, axis=1)
 
-        elif 'CV' in self.classifier_info['classifier']:
+        elif "CV" in self.classifier_info["classifier"]:
 
-            if (0 < self.perc_samp_each < 1) or ((self.perc_samp_each == 0) and (0 < self.perc_samp < 1)):
+            if (0 < self.perc_samp_each < 1) or (
+                (self.perc_samp_each == 0) and (0 < self.perc_samp < 1)
+            ):
                 __, test_labs_pred = self.model.predict(self.p_vars_test)
             else:
                 __, test_labs_pred = self.model.predict(self.p_vars)
 
-        elif self.classifier_info['classifier'] in ['c5', 'cubist']:
+        elif self.classifier_info["classifier"] in ["c5", "cubist"]:
 
-            if (0 < self.perc_samp_each < 1) or ((self.perc_samp_each == 0) and (0 < self.perc_samp < 1)):
+            if (0 < self.perc_samp_each < 1) or (
+                (self.perc_samp_each == 0) and (0 < self.perc_samp < 1)
+            ):
 
-                features = ro.r.matrix(self.p_vars_test, nrow=self.p_vars_test.shape[0],
-                                       ncol=self.p_vars_test.shape[1])
+                features = ro.r.matrix(
+                    self.p_vars_test,
+                    nrow=self.p_vars_test.shape[0],
+                    ncol=self.p_vars_test.shape[1],
+                )
             else:
 
-                features = ro.r.matrix(self.p_vars, nrow=self.p_vars.shape[0],
-                                       ncol=self.p_vars.shape[1])
+                features = ro.r.matrix(
+                    self.p_vars, nrow=self.p_vars.shape[0], ncol=self.p_vars.shape[1]
+                )
 
             features.colnames = StrVector(self.headers[:-1])
 
-            test_labs_pred = _do_c5_cubist_predict(self.model, self.classifier_info['classifier'],
-                                                   features)
+            test_labs_pred = _do_c5_cubist_predict(
+                self.model, self.classifier_info["classifier"], features
+            )
 
         else:
 
@@ -6632,24 +7788,22 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 self.test_array = np.float32(np.c_[test_labs_pred, self.labels])
 
         if not be_quiet:
-            logger.info('  Getting test accuracy ...')
+            logger.info("  Getting test accuracy ...")
 
         self.emat = error_matrix()
 
-        self.emat.get_stats(po_array=self.test_array,
-                            discrete=discrete)
+        self.emat.get_stats(po_array=self.test_array, discrete=discrete)
 
         if out_acc:
             self.emat.write_stats(out_acc)
 
-    def recursive_elimination(self, method='rf', perc_samp_each=.5):
-
+    def recursive_elimination(self, method="rf", perc_samp_each=0.5):
         """
         Recursively eliminates features.
 
         Args:
             method (Optional[str]): The method to use. Default is 'rf'. Choices are ['rf', 'chi2'].
-            perc_samp_each (Optional[float]): The percentage to sample at each iteration. Default is .5. 
+            perc_samp_each (Optional[float]): The percentage to sample at each iteration. Default is .5.
 
         Returns:
             None, plots results.
@@ -6664,16 +7818,20 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             >>> cl.recursive_elimination()
         """
 
-        if method == 'chi2':
+        if method == "chi2":
 
-            if not hasattr(self, 'p_vars'):
+            if not hasattr(self, "p_vars"):
 
-                logger.error('  Be sure to run `split_samples` to create the `p_vars` variables.')
+                logger.error(
+                    "  Be sure to run `split_samples` to create the `p_vars` variables."
+                )
                 raise AttributeError
 
-            if not hasattr(self, 'labels'):
+            if not hasattr(self, "labels"):
 
-                logger.error('  Be sure to run `split_samples` to create the `labels` variables.')
+                logger.error(
+                    "  Be sure to run `split_samples` to create the `labels` variables."
+                )
                 raise AttributeError
 
             p_vars = self.p_vars.copy()
@@ -6684,32 +7842,38 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 col_min = p_vars[:, var_col_pos].min()
 
                 if col_min < 0:
-                    p_vars[:, var_col_pos] = np.add(p_vars[:, var_col_pos], abs(col_min))
+                    p_vars[:, var_col_pos] = np.add(
+                        p_vars[:, var_col_pos], abs(col_min)
+                    )
 
             feas_ranked, p_val = chi2(p_vars, self.labels)
 
-        elif method == 'rf':
+        elif method == "rf":
 
-            if not hasattr(self, 'model'):
-                logger.error('  A RF model must be trained to use RF feature importance.')
+            if not hasattr(self, "model"):
+                logger.error(
+                    "  A RF model must be trained to use RF feature importance."
+                )
 
-            if not hasattr(self.model, 'feature_importances_'):
-                logger.error('  A RF model must be trained to use RF feature importance.')
+            if not hasattr(self.model, "feature_importances_"):
+                logger.error(
+                    "  A RF model must be trained to use RF feature importance."
+                )
 
             feas_ranked = self.model.feature_importances_
 
         else:
-            logger.error('  The feature ranking method is not supported.')
+            logger.error("  The feature ranking method is not supported.")
             raise NameError
 
         loop_len = len(feas_ranked) + 1
 
-        feas_ranked[np.isnan(feas_ranked)] = 0.
+        feas_ranked[np.isnan(feas_ranked)] = 0.0
 
         self.fea_rank = dict()
 
         for i in range(1, loop_len):
-            self.fea_rank[i] = feas_ranked[i-1]
+            self.fea_rank[i] = feas_ranked[i - 1]
 
         indices = list()
         indice_counts = list()
@@ -6725,12 +7889,14 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                 indices.append(s)
 
-                self.split_samples(self.file_name,
-                                   perc_samp_each=perc_samp_each,
-                                   ignore_feas=indices,
-                                   use_xy=self.use_xy)
+                self.split_samples(
+                    self.file_name,
+                    perc_samp_each=perc_samp_each,
+                    ignore_feas=indices,
+                    use_xy=self.use_xy,
+                )
 
-                logger.info('  {:d} features ...'.format(self.n_feas))
+                logger.info("  {:d} features ...".format(self.n_feas))
 
                 self.construct_model(classifier_info=self.classifier_info)
 
@@ -6742,27 +7908,31 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 indice_counts.append(len(indices))
                 accuracy_scores.append(self.emat.accuracy)
 
-        accuracy_scores_sm = [sum(accuracy_scores[r:r+3]) / 3. for r in range(0, len(accuracy_scores)-2)]
-        accuracy_scores_sm.insert(0, sum(accuracy_scores_sm[:2]) / 2.)
-        accuracy_scores_sm.append(sum(accuracy_scores_sm[-2:]) / 2.)
+        accuracy_scores_sm = [
+            sum(accuracy_scores[r : r + 3]) / 3.0
+            for r in range(0, len(accuracy_scores) - 2)
+        ]
+        accuracy_scores_sm.insert(0, sum(accuracy_scores_sm[:2]) / 2.0)
+        accuracy_scores_sm.append(sum(accuracy_scores_sm[-2:]) / 2.0)
 
         plt.plot(indice_counts, accuracy_scores_sm)
-        plt.xlabel('Number of features removed')
-        plt.ylabel('Overall accuracy')
+        plt.xlabel("Number of features removed")
+        plt.ylabel("Overall accuracy")
         plt.show()
 
         plt.close()
 
-    def rank_feas(self, rank_text=None, rank_method='chi2', top_feas=1., be_quiet=False):
-
+    def rank_feas(
+        self, rank_text=None, rank_method="chi2", top_feas=1.0, be_quiet=False
+    ):
         """
         Ranks image features by importance.
 
         Args:
             rank_text (Optional[str]): A text file to write ranked features to. Default is None.
-            rank_method (Optional[str]): The method to use for feature ranking. Default is 'chi2' (Chi^2). Choices are 
+            rank_method (Optional[str]): The method to use for feature ranking. Default is 'chi2' (Chi^2). Choices are
                 ['chi2', 'rf'].
-            top_feas (Optional[float or int]): The percentage or total number of features to reduce to. 
+            top_feas (Optional[float or int]): The percentage or total number of features to reduce to.
                 Default is 1., or no reduction.
             be_quiet (Optional[bool]): Whether to be quiet and do not print to screen. Default is False.
 
@@ -6788,18 +7958,22 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             if not os.path.isdir(d_name):
                 os.makedirs(d_name)
 
-            rank_txt_wr = open(rank_text, 'wb')
+            rank_txt_wr = open(rank_text, "wb")
 
-        if rank_method == 'chi2':
+        if rank_method == "chi2":
 
-            if not hasattr(self, 'p_vars'):
+            if not hasattr(self, "p_vars"):
 
-                logger.error('  Be sure to run `split_samples` to create the `p_vars` variables.')
+                logger.error(
+                    "  Be sure to run `split_samples` to create the `p_vars` variables."
+                )
                 raise AttributeError
 
-            if not hasattr(self, 'labels'):
+            if not hasattr(self, "labels"):
 
-                logger.error('  Be sure to run `split_samples` to create the `labels` variables.')
+                logger.error(
+                    "  Be sure to run `split_samples` to create the `labels` variables."
+                )
                 raise AttributeError
 
             p_vars = self.p_vars.copy()
@@ -6810,19 +7984,25 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
                 col_min = p_vars[:, var_col_pos].min()
 
                 if col_min < 0:
-                    p_vars[:, var_col_pos] = np.add(p_vars[:, var_col_pos], abs(col_min))
+                    p_vars[:, var_col_pos] = np.add(
+                        p_vars[:, var_col_pos], abs(col_min)
+                    )
 
             feas_ranked, p_val = chi2(p_vars, self.labels)
 
             loop_len = len(feas_ranked) + 1
 
-        elif rank_method == 'rf':
+        elif rank_method == "rf":
 
-            if not hasattr(self, 'model'):
-                logger.error('  A RF model must be trained to use RF feature importance.')
+            if not hasattr(self, "model"):
+                logger.error(
+                    "  A RF model must be trained to use RF feature importance."
+                )
 
-            if not hasattr(self.model, 'feature_importances_'):
-                logger.error('  A RF model must be trained to use RF feature importance.')
+            if not hasattr(self.model, "feature_importances_"):
+                logger.error(
+                    "  A RF model must be trained to use RF feature importance."
+                )
 
             feas_ranked = self.model.feature_importances_
 
@@ -6830,26 +8010,26 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
         else:
 
-            logger.error('  The feature ranking method is not supported.')
+            logger.error("  The feature ranking method is not supported.")
             raise NameError
 
-        feas_ranked[np.isnan(feas_ranked)] = 0.
+        feas_ranked[np.isnan(feas_ranked)] = 0.0
 
         self.fea_rank = dict()
 
         for i in range(1, loop_len):
-            self.fea_rank[i] = feas_ranked[i-1]
+            self.fea_rank[i] = feas_ranked[i - 1]
 
-        if rank_method == 'chi2':
-            title = '**********************\n*                    *\n* Chi^2 Feature Rank *\n*                    *\n**********************\n\nRank      Variable      Value\n----      --------      -----'
-        elif rank_method == 'rf':
-            title = '************************************\n*                                  *\n* Random Forest Feature Importance *\n*                                  *\n************************************\n\nRank      Variable      Value\n----      --------      -----'
+        if rank_method == "chi2":
+            title = "**********************\n*                    *\n* Chi^2 Feature Rank *\n*                    *\n**********************\n\nRank      Variable      Value\n----      --------      -----"
+        elif rank_method == "rf":
+            title = "************************************\n*                                  *\n* Random Forest Feature Importance *\n*                                  *\n************************************\n\nRank      Variable      Value\n----      --------      -----"
 
         if not be_quiet:
             logger.info(title)
 
         if isinstance(rank_text, str):
-            rank_txt_wr.write('%s\n' % title)
+            rank_txt_wr.write("%s\n" % title)
 
         if isinstance(top_feas, float):
             n_best_feas = int(top_feas * len(self.fea_rank))
@@ -6864,19 +8044,31 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             if r <= n_best_feas:
 
                 if r < 10 and s < 10:
-                    ranks = '%d         %d             %s' % (r, s, str(self.fea_rank[s]))
+                    ranks = "%d         %d             %s" % (
+                        r,
+                        s,
+                        str(self.fea_rank[s]),
+                    )
                 elif r >= 10 and s < 10:
-                    ranks = '%d        %d             %s' % (r, s, str(self.fea_rank[s]))
+                    ranks = "%d        %d             %s" % (
+                        r,
+                        s,
+                        str(self.fea_rank[s]),
+                    )
                 elif r < 10 and s >= 10:
-                    ranks = '%d         %d            %s' % (r, s, str(self.fea_rank[s]))
+                    ranks = "%d         %d            %s" % (
+                        r,
+                        s,
+                        str(self.fea_rank[s]),
+                    )
                 else:
-                    ranks = '%d        %d            %s' % (r, s, str(self.fea_rank[s]))
+                    ranks = "%d        %d            %s" % (r, s, str(self.fea_rank[s]))
 
                 if not be_quiet:
                     logger.info(ranks)
 
                 if isinstance(rank_text, str):
-                    rank_txt_wr.write('%s\n' % ranks)
+                    rank_txt_wr.write("%s\n" % ranks)
 
             else:
                 # append excluded variables and remove from the "good" variables
@@ -6886,27 +8078,31 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             r += 1
 
-        self.ranked_feas = np.array(sorted(self.fea_rank, key=self.fea_rank.get, reverse=True))
+        self.ranked_feas = np.array(
+            sorted(self.fea_rank, key=self.fea_rank.get, reverse=True)
+        )
 
         if not be_quiet:
 
-            logger.info('  Mean score:  %.2f' % np.average([v for k, v in viewitems(self.fea_rank)]))
+            logger.info(
+                "  Mean score:  %.2f"
+                % np.average([v for k, v in viewitems(self.fea_rank)])
+            )
 
-            logger.info('  ==================')
-            logger.info('  Excluded variables')
-            logger.info('  ==================')
-            logger.info(','.join(list(map(str, sorted(self.bad_features)))))
+            logger.info("  ==================")
+            logger.info("  Excluded variables")
+            logger.info("  ==================")
+            logger.info(",".join(list(map(str, sorted(self.bad_features)))))
 
         if isinstance(rank_text, str):
 
-            rank_txt_wr.write('\n==================\n')
-            rank_txt_wr.write('Excluded variables\n')
-            rank_txt_wr.write('==================\n')
-            rank_txt_wr.write(','.join([str(bf) for bf in sorted(self.bad_features)]))
+            rank_txt_wr.write("\n==================\n")
+            rank_txt_wr.write("Excluded variables\n")
+            rank_txt_wr.write("==================\n")
+            rank_txt_wr.write(",".join([str(bf) for bf in sorted(self.bad_features)]))
             rank_txt_wr.close()
 
     def add_variable_names(self, layer_names, stat_names, additional_features=[]):
-
         """
         Adds band-stat name pairs.
 
@@ -6935,7 +8131,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             for stat_name in stat_names:
 
-                self.variable_names[counter] = '{} {}'.format(layer_name, stat_name)
+                self.variable_names[counter] = "{} {}".format(layer_name, stat_name)
 
                 counter += 1
 
@@ -6951,14 +8147,13 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             logger.info(k, v)
 
     def sub_feas(self, input_image, out_img, band_list=None):
-
         """
-        Subsets features. 
+        Subsets features.
 
         Args:
             input_image (str): Full path, name, and extension of a single image.
             out_img (str): The output image.
-            band_list (Optional[list]): A list of bands to subset. Default is []. If empty, ``sub_feas`` subsets 
+            band_list (Optional[list]): A list of bands to subset. Default is []. If empty, ``sub_feas`` subsets
                 the top n best features returned by ``rank_feas``.
 
         Returns:
@@ -6976,14 +8171,18 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             >>> cl.sub_feas('/in_image.vrt', '/ranked_feas.vrt')
         """
 
-        if not hasattr(self, 'ranked_feas'):
-            sys.exit('\nERROR!! The features need to be ranked first. See <rank_feas> method.\n')
+        if not hasattr(self, "ranked_feas"):
+            sys.exit(
+                "\nERROR!! The features need to be ranked first. See <rank_feas> method.\n"
+            )
 
         if not isinstance(input_image, str):
-            sys.exit('\nERROR!! The input image needs to be specified in order set the extent.\n')
+            sys.exit(
+                "\nERROR!! The input image needs to be specified in order set the extent.\n"
+            )
 
         if not os.path.isfile(input_image):
-            sys.exit('\nERROR!! %s does not exist.\n' % input_image)
+            sys.exit("\nERROR!! %s does not exist.\n" % input_image)
 
         d_name, f_name = os.path.split(out_img)
         f_base, f_ext = os.path.splitext(f_name)
@@ -6991,40 +8190,45 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         if not os.path.isdir(d_name):
             os.makedirs(d_name)
 
-        if 'vrt' not in f_ext.lower():
+        if "vrt" not in f_ext.lower():
 
             out_img_orig = copy(out_img)
-            out_img = '%s/%s.vrt' % (d_name, f_base)
+            out_img = "%s/%s.vrt" % (d_name, f_base)
 
         if not band_list:
 
             # create the band list
-            band_list = ''
+            band_list = ""
             for fea_idx in self.ranked_feas:
-                band_list = '%s-b %d ' % (band_list, fea_idx)
+                band_list = "%s-b %d " % (band_list, fea_idx)
 
-        logger.info('  Subsetting ranked features ...')
+        logger.info("  Subsetting ranked features ...")
 
-        com = 'gdalbuildvrt %s %s %s' % (band_list, out_img, input_image)
+        com = "gdalbuildvrt %s %s %s" % (band_list, out_img, input_image)
 
         subprocess.call(com, shell=True)
 
-        if 'tif' in f_ext.lower():
+        if "tif" in f_ext.lower():
 
-            com = 'gdal_translate --config GDAL_CACHEMAX 256 -of GTiff -co TILED=YES -co COMPRESS=LZW %s %s' % \
-                  (out_img, out_img_orig)
-
-            subprocess.call(com, shell=True)
-
-        elif 'img' in f_ext.lower():
-
-            com = 'gdal_translate --config GDAL_CACHEMAX 256 -of HFA -co COMPRESS=YES %s %s' % \
-                  (out_img, out_img_orig)
+            com = (
+                "gdal_translate --config GDAL_CACHEMAX 256 -of GTiff -co TILED=YES -co COMPRESS=LZW %s %s"
+                % (out_img, out_img_orig)
+            )
 
             subprocess.call(com, shell=True)
 
-    def grid_search_gridcrf(self, classifier_parameters, method='overall', output_file=None):
+        elif "img" in f_ext.lower():
 
+            com = (
+                "gdal_translate --config GDAL_CACHEMAX 256 -of HFA -co COMPRESS=YES %s %s"
+                % (out_img, out_img_orig)
+            )
+
+            subprocess.call(com, shell=True)
+
+    def grid_search_gridcrf(
+        self, classifier_parameters, method="overall", output_file=None
+    ):
         """
         Conditional Random Field SSVM parameter grid search
 
@@ -7047,9 +8251,11 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         param_order = list(classifier_parameters)
 
         # Setup the output scores table.
-        df_param_headers = '-'.join(list(classifier_parameters))
+        df_param_headers = "-".join(list(classifier_parameters))
         df = pd.DataFrame(columns=[df_param_headers])
-        df[df_param_headers] = list(itertools.product(*itervalues(classifier_parameters)))
+        df[df_param_headers] = list(
+            itertools.product(*itervalues(classifier_parameters))
+        )
 
         # Setup the error object.
         emat = error_matrix()
@@ -7061,46 +8267,62 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             current_combo = dict(zip(param_order, param_combo))
 
             # Add the classifier name to the dictionary.
-            current_combo['classifier'] = 'gridcrf'
-            current_combo['n_jobs'] = -1
+            current_combo["classifier"] = "gridcrf"
+            current_combo["n_jobs"] = -1
 
             # Train the model.
             self.construct_model(classifier_info=current_combo)
 
             # Make predictions
-            combo_predictions = np.array(self.model.predict(self.p_vars), dtype='uint8')
+            combo_predictions = np.array(self.model.predict(self.p_vars), dtype="uint8")
 
             # Get the model accuracy.
-            emat.get_stats(po_array=np.c_[combo_predictions.ravel(),
-                                          self.labels.ravel()])
+            emat.get_stats(
+                po_array=np.c_[combo_predictions.ravel(), self.labels.ravel()]
+            )
 
-            if method == 'overall':
-                df.loc[df[df_param_headers] == param_combo, 'Accuracy'] = emat.accuracy
+            if method == "overall":
+                df.loc[df[df_param_headers] == param_combo, "Accuracy"] = emat.accuracy
 
             logger.info(param_combo)
             logger.info(df)
             logger.info(emat.accuracy)
 
-        best_score_index = np.argmax(df['Accuracy'].values)
+        best_score_index = np.argmax(df["Accuracy"].values)
 
-        logger.info('  Best score: {:f}'.format(df['Accuracy'].values[best_score_index]))
+        logger.info(
+            "  Best score: {:f}".format(df["Accuracy"].values[best_score_index])
+        )
 
-        logger.info('  Best parameters:')
-        logger.info(''.join(['='] * len(df_param_headers)))
+        logger.info("  Best parameters:")
+        logger.info("".join(["="] * len(df_param_headers)))
         logger.info(df_param_headers)
-        logger.info(''.join(['='] * len(df_param_headers)))
+        logger.info("".join(["="] * len(df_param_headers)))
         logger.info(df[df_param_headers].values[best_score_index])
 
         if isinstance(output_file, str):
-            df.to_csv(output_file, sep=',', index=False)
+            df.to_csv(output_file, sep=",", index=False)
 
         return df
 
-    def grid_search(self, classifier_name, classifier_parameters, file_name, k_folds=3,
-                    perc_samp=.5, ignore_feas=[], use_xy=False, classes2remove=[],
-                    method='overall', metric='accuracy', f1_class=0, stratified=False, spacing=1000.,
-                    output_file=None, calibrate_proba=False):
-
+    def grid_search(
+        self,
+        classifier_name,
+        classifier_parameters,
+        file_name,
+        k_folds=3,
+        perc_samp=0.5,
+        ignore_feas=[],
+        use_xy=False,
+        classes2remove=[],
+        method="overall",
+        metric="accuracy",
+        f1_class=0,
+        stratified=False,
+        spacing=1000.0,
+        output_file=None,
+        calibrate_proba=False,
+    ):
         """
         Classifier parameter grid search
 
@@ -7126,33 +8348,45 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             DataFrame with scores.
         """
 
-        regressors = ['cubist', 'rfr', 'abr', 'bag-dtr', 'ex-rfr', 'ex-dtr', 'dtr']
+        regressors = ["cubist", "rfr", "abr", "bag-dtr", "ex-rfr", "ex-dtr", "dtr"]
 
-        if metric not in ['accuracy', 'r_squared', 'rmse', 'mae', 'medae', 'mse']:
+        if metric not in ["accuracy", "r_squared", "rmse", "mae", "medae", "mse"]:
 
-            logger.error('  The metric is not supported.')
+            logger.error("  The metric is not supported.")
             raise NameError
 
-        if classifier_name in regressors and metric == 'accuracy':
+        if classifier_name in regressors and metric == "accuracy":
 
-            logger.error('  Overall accuracy is not supported with regression classifiers.')
+            logger.error(
+                "  Overall accuracy is not supported with regression classifiers."
+            )
             raise NameError
 
-        if classifier_name not in regressors and metric in ['r_squared', 'rmse', 'mae', 'medae', 'mse']:
+        if classifier_name not in regressors and metric in [
+            "r_squared",
+            "rmse",
+            "mae",
+            "medae",
+            "mse",
+        ]:
 
-            logger.error('  Overall accuracy is the only option with discrete classifiers.')
+            logger.error(
+                "  Overall accuracy is the only option with discrete classifiers."
+            )
             raise NameError
 
-        if classifier_name in ['c5', 'cubist']:
+        if classifier_name in ["c5", "cubist"]:
 
-            if 'R_installed' not in globals():
+            if "R_installed" not in globals():
 
-                logger.warning('  You must use `classification_r` to use C5 and Cubist.')
+                logger.warning(
+                    "  You must use `classification_r` to use C5 and Cubist."
+                )
                 return
 
             if not R_installed:
 
-                logger.warning('  R and rpy2 must be installed to use C5 or Cubist.')
+                logger.warning("  R and rpy2 must be installed to use C5 or Cubist.")
                 return
 
         if classifier_name in regressors:
@@ -7164,108 +8398,133 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
         param_order = list(classifier_parameters)
 
-        df_param_headers = '-'.join(param_order)
-        df_fold_headers = ('F' + '-F'.join(list(map(str, range(1, k_folds+1))))).split('-')
+        df_param_headers = "-".join(param_order)
+        df_fold_headers = (
+            "F" + "-F".join(list(map(str, range(1, k_folds + 1))))
+        ).split("-")
 
         # Setup the output scores table.
         df = pd.DataFrame(columns=df_fold_headers)
-        df[df_param_headers] = list(itertools.product(*itervalues(classifier_parameters)))
+        df[df_param_headers] = list(
+            itertools.product(*itervalues(classifier_parameters))
+        )
 
         # Open the weights file.
-        lc_weights = file_name.replace('.txt', '_w.txt')
+        lc_weights = file_name.replace(".txt", "_w.txt")
 
         if os.path.isfile(lc_weights):
             weights = self.load(lc_weights)
         else:
             weights = None
 
-        for k_fold in range(1, k_folds+1):
+        for k_fold in range(1, k_folds + 1):
 
-            logger.info('  Fold {:d} of {:d} ...'.format(k_fold, k_folds))
+            logger.info("  Fold {:d} of {:d} ...".format(k_fold, k_folds))
 
-            self.split_samples(file_name, perc_samp_each=perc_samp, ignore_feas=ignore_feas,
-                               use_xy=use_xy, classes2remove=classes2remove, stratified=stratified,
-                               spacing=spacing, sample_weight=weights)
+            self.split_samples(
+                file_name,
+                perc_samp_each=perc_samp,
+                ignore_feas=ignore_feas,
+                use_xy=use_xy,
+                classes2remove=classes2remove,
+                stratified=stratified,
+                spacing=spacing,
+                sample_weight=weights,
+            )
 
-            if classifier_name in ['c5', 'cubist']:
+            if classifier_name in ["c5", "cubist"]:
 
-                predict_samps = ro.r.matrix(self.p_vars, nrow=self.n_samps, ncol=self.n_feas)
+                predict_samps = ro.r.matrix(
+                    self.p_vars, nrow=self.n_samps, ncol=self.n_feas
+                )
                 predict_samps.colnames = StrVector(self.headers[:-1])
 
             # Iterate over all possible combinations.
-            for param_combo in list(itertools.product(*itervalues(classifier_parameters))):
+            for param_combo in list(
+                itertools.product(*itervalues(classifier_parameters))
+            ):
 
                 # Set the current parameters.
                 current_combo = dict(zip(param_order, param_combo))
 
                 # Add the classifier name to the dictionary.
-                current_combo['classifier'] = classifier_name
+                current_combo["classifier"] = classifier_name
 
-                if classifier_name in ['c5', 'cubist']:
+                if classifier_name in ["c5", "cubist"]:
                     self.construct_r_model(classifier_info=current_combo)
                 else:
-                    self.construct_model(classifier_info=current_combo,
-                                         calibrate_proba=calibrate_proba)
+                    self.construct_model(
+                        classifier_info=current_combo, calibrate_proba=calibrate_proba
+                    )
 
                 # Get the accuracy
                 self.test_accuracy(discrete=discrete)
 
-                if method == 'overall':
-                    df.loc[df[df_param_headers] == param_combo, 'F{:d}'.format(k_fold)] = getattr(self.emat, metric)
+                if method == "overall":
+                    df.loc[
+                        df[df_param_headers] == param_combo, "F{:d}".format(k_fold)
+                    ] = getattr(self.emat, metric)
 
-                elif method == 'f1':
-                    df.loc[df[df_param_headers] == param_combo, 'F{:d}'.format(k_fold)] = self.emat.f_scores[f1_class]
+                elif method == "f1":
+                    df.loc[
+                        df[df_param_headers] == param_combo, "F{:d}".format(k_fold)
+                    ] = self.emat.f_scores[f1_class]
 
         df[score_label] = df[df_fold_headers].mean(axis=1)
 
-        if metric in ['accuracy', 'r_squared']:
+        if metric in ["accuracy", "r_squared"]:
             best_score_index = np.argmax(df[score_label].values)
         else:
             best_score_index = np.argmin(df[score_label].values)
 
-        logger.info('  Best {} score: {:f}'.format(metric, df[score_label].values[best_score_index]))
+        logger.info(
+            "  Best {} score: {:f}".format(
+                metric, df[score_label].values[best_score_index]
+            )
+        )
 
-        logger.info('  Best parameters:')
-        logger.info(''.join(['='] * len(df_param_headers)))
+        logger.info("  Best parameters:")
+        logger.info("".join(["="] * len(df_param_headers)))
         logger.info(df_param_headers)
-        logger.info(''.join(['=']*len(df_param_headers)))
+        logger.info("".join(["="] * len(df_param_headers)))
         logger.info(df[df_param_headers].values[best_score_index])
 
         if isinstance(output_file, str):
-            df.to_csv(output_file, sep=',', index=False)
+            df.to_csv(output_file, sep=",", index=False)
 
         return df
 
-    def optimize_parameters(self,
-                            file_name,
-                            classifier_info={'classifier': 'rf'},
-                            n_trees_list=[500, 1000, 1500, 2000],
-                            trials_list=[2, 5, 10],
-                            max_depth_list=[25, 30, 35, 40, 45, 50],
-                            min_samps_list=[2, 5, 10],
-                            criterion_list=['gini'],
-                            rand_vars_list=['sqrt'],
-                            cf_list=[.25, .5, .75],
-                            committees_list=[1, 2, 5, 10],
-                            rules_list=[25, 50, 100, 500],
-                            extrapolation_list=[0, 1, 5, 10],
-                            class_weight_list=[None, 'balanced', 'balanced_subsample'],
-                            learn_rate_list=[.1, .2, .4, .6, .8, 1.],
-                            bool_list=[True, False],
-                            c_list=[1., 10., 20., 100.],
-                            gamma_list=[.001, .001, .01, .1, 1., 5.],
-                            k_folds=3,
-                            perc_samp=.5,
-                            ignore_feas=[],
-                            use_xy=False,
-                            classes2remove=[],
-                            method='overall',
-                            f1_class=0,
-                            stratified=False,
-                            spacing=1000.,
-                            calibrate_proba=False,
-                            output_file=None):
-
+    def optimize_parameters(
+        self,
+        file_name,
+        classifier_info={"classifier": "rf"},
+        n_trees_list=[500, 1000, 1500, 2000],
+        trials_list=[2, 5, 10],
+        max_depth_list=[25, 30, 35, 40, 45, 50],
+        min_samps_list=[2, 5, 10],
+        criterion_list=["gini"],
+        rand_vars_list=["sqrt"],
+        cf_list=[0.25, 0.5, 0.75],
+        committees_list=[1, 2, 5, 10],
+        rules_list=[25, 50, 100, 500],
+        extrapolation_list=[0, 1, 5, 10],
+        class_weight_list=[None, "balanced", "balanced_subsample"],
+        learn_rate_list=[0.1, 0.2, 0.4, 0.6, 0.8, 1.0],
+        bool_list=[True, False],
+        c_list=[1.0, 10.0, 20.0, 100.0],
+        gamma_list=[0.001, 0.001, 0.01, 0.1, 1.0, 5.0],
+        k_folds=3,
+        perc_samp=0.5,
+        ignore_feas=[],
+        use_xy=False,
+        classes2remove=[],
+        method="overall",
+        f1_class=0,
+        stratified=False,
+        spacing=1000.0,
+        calibrate_proba=False,
+        output_file=None,
+    ):
         """
         Finds the optimal parameters for a classifier by training and testing a range of classifier parameters
         by n-folds cross-validation.
@@ -7330,158 +8589,223 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             >>> print df
         """
 
-        if classifier_info['classifier'] not in ['c5', 'cubist']:
+        if classifier_info["classifier"] not in ["c5", "cubist"]:
 
-            self.split_samples(file_name, perc_samp=1., ignore_feas=ignore_feas,
-                               use_xy=use_xy, classes2remove=classes2remove)
+            self.split_samples(
+                file_name,
+                perc_samp=1.0,
+                ignore_feas=ignore_feas,
+                use_xy=use_xy,
+                classes2remove=classes2remove,
+            )
 
-            prediction_models = {'rf': ensemble.RandomForestClassifier(n_jobs=-1),
-                                 'rfr': ensemble.RandomForestRegressor(n_jobs=-1),
-                                 'ex-rf': ensemble.ExtraTreesClassifier(n_jobs=-1),
-                                 'ex-rfr': ensemble.ExtraTreesRegressor(n_jobs=-1),
-                                 'bag-dt': ensemble.BaggingClassifier(base_estimator=tree.DecisionTreeClassifier(),
-                                                                      n_jobs=-1),
-                                 'ab-dt': ensemble.AdaBoostClassifier(base_estimator=tree.DecisionTreeClassifier()),
-                                 'gb': ensemble.GradientBoostingClassifier(),
-                                 'dt': tree.DecisionTreeClassifier()}
+            prediction_models = {
+                "rf": ensemble.RandomForestClassifier(n_jobs=-1),
+                "rfr": ensemble.RandomForestRegressor(n_jobs=-1),
+                "ex-rf": ensemble.ExtraTreesClassifier(n_jobs=-1),
+                "ex-rfr": ensemble.ExtraTreesRegressor(n_jobs=-1),
+                "bag-dt": ensemble.BaggingClassifier(
+                    base_estimator=tree.DecisionTreeClassifier(), n_jobs=-1
+                ),
+                "ab-dt": ensemble.AdaBoostClassifier(
+                    base_estimator=tree.DecisionTreeClassifier()
+                ),
+                "gb": ensemble.GradientBoostingClassifier(),
+                "dt": tree.DecisionTreeClassifier(),
+            }
 
-        if classifier_info['classifier'] in ['rf', 'ex-rf']:
+        if classifier_info["classifier"] in ["rf", "ex-rf"]:
 
-            parameters = {'criterion': criterion_list,
-                          'n_estimators': n_trees_list,
-                          'max_depth': max_depth_list,
-                          'max_features': rand_vars_list,
-                          'min_samples_split': min_samps_list,
-                          'class_weight': class_weight_list}
+            parameters = {
+                "criterion": criterion_list,
+                "n_estimators": n_trees_list,
+                "max_depth": max_depth_list,
+                "max_features": rand_vars_list,
+                "min_samples_split": min_samps_list,
+                "class_weight": class_weight_list,
+            }
 
-        elif classifier_info['classifier'] in ['rfr', 'ex-rfr', 'dtr']:
+        elif classifier_info["classifier"] in ["rfr", "ex-rfr", "dtr"]:
 
-            parameters = {'trees': n_trees_list,
-                          'max_depth': max_depth_list,
-                          'rand_vars': rand_vars_list,
-                          'min_samps': min_samps_list}
+            parameters = {
+                "trees": n_trees_list,
+                "max_depth": max_depth_list,
+                "rand_vars": rand_vars_list,
+                "min_samps": min_samps_list,
+            }
 
-        elif classifier_info['classifier'] in ['ab-dt', 'ab-dt', 'ab-ex-dt', 'ab-rf', 'ab-ex-rf']:
+        elif classifier_info["classifier"] in [
+            "ab-dt",
+            "ab-dt",
+            "ab-ex-dt",
+            "ab-rf",
+            "ab-ex-rf",
+        ]:
 
-            parameters = {'n_estimators': n_trees_list,
-                          'trials': trials_list,
-                          'learning_rate': learn_rate_list,
-                          'max_depth': max_depth_list,
-                          'min_samps': min_samps_list,
-                          'class_weight': class_weight_list}
+            parameters = {
+                "n_estimators": n_trees_list,
+                "trials": trials_list,
+                "learning_rate": learn_rate_list,
+                "max_depth": max_depth_list,
+                "min_samps": min_samps_list,
+                "class_weight": class_weight_list,
+            }
 
-        elif classifier_info['classifier'] in ['abr', 'abr-ex-dtr']:
+        elif classifier_info["classifier"] in ["abr", "abr-ex-dtr"]:
 
-            parameters = {'trees': n_trees_list,
-                          'rate': learn_rate_list}
+            parameters = {"trees": n_trees_list, "rate": learn_rate_list}
 
-        elif classifier_info['classifier'] == 'bag-dt':
+        elif classifier_info["classifier"] == "bag-dt":
 
-            parameters = {'n_estimators': n_trees_list,
-                          'warm_start': bool_list,
-                          'bootstrap': bool_list,                          
-                          'bootstrap_features': bool_list}
+            parameters = {
+                "n_estimators": n_trees_list,
+                "warm_start": bool_list,
+                "bootstrap": bool_list,
+                "bootstrap_features": bool_list,
+            }
 
-        elif classifier_info['classifier'] == 'bag-dtr':
+        elif classifier_info["classifier"] == "bag-dtr":
 
-            parameters = {'trees': n_trees_list,
-                          'warm_start': bool_list,
-                          'bootstrap': bool_list,
-                          'bootstrap_features': bool_list}
+            parameters = {
+                "trees": n_trees_list,
+                "warm_start": bool_list,
+                "bootstrap": bool_list,
+                "bootstrap_features": bool_list,
+            }
 
-        elif classifier_info['classifier'] == 'gb':
+        elif classifier_info["classifier"] == "gb":
 
-            parameters = {'n_estimators': n_trees_list,
-                          'max_depth': max_depth_list,
-                          'max_features': rand_vars_list,
-                          'min_samples_split': min_samps_list,
-                          'learning_rate': learn_rate_list}
+            parameters = {
+                "n_estimators": n_trees_list,
+                "max_depth": max_depth_list,
+                "max_features": rand_vars_list,
+                "min_samples_split": min_samps_list,
+                "learning_rate": learn_rate_list,
+            }
 
-        elif classifier_info['classifier'] == 'gbr':
+        elif classifier_info["classifier"] == "gbr":
 
-            parameters = {'trees': n_trees_list,
-                          'max_depth': max_depth_list,
-                          'rand_vars': rand_vars_list,
-                          'min_samps': min_samps_list,
-                          'learning_rate': learn_rate_list}
+            parameters = {
+                "trees": n_trees_list,
+                "max_depth": max_depth_list,
+                "rand_vars": rand_vars_list,
+                "min_samps": min_samps_list,
+                "learning_rate": learn_rate_list,
+            }
 
-        elif classifier_info['classifier'] == 'dt':
+        elif classifier_info["classifier"] == "dt":
 
-            parameters = {'n_estimators': n_trees_list,
-                          'max_depth': max_depth_list,
-                          'max_features': rand_vars_list,
-                          'min_samples_split': min_samps_list}
+            parameters = {
+                "n_estimators": n_trees_list,
+                "max_depth": max_depth_list,
+                "max_features": rand_vars_list,
+                "min_samples_split": min_samps_list,
+            }
 
-        elif classifier_info['classifier'] == 'svmc':
+        elif classifier_info["classifier"] == "svmc":
 
-            parameters = {'C': c_list,
-                          'gamma': gamma_list}
+            parameters = {"C": c_list, "gamma": gamma_list}
 
-        elif classifier_info['classifier'] == 'c5':
+        elif classifier_info["classifier"] == "c5":
 
-            parameters = {'trials': trials_list,
-                          'min_cases': min_samps_list,
-                          'CF': cf_list,
-                          'fuzzy': bool_list}
+            parameters = {
+                "trials": trials_list,
+                "min_cases": min_samps_list,
+                "CF": cf_list,
+                "fuzzy": bool_list,
+            }
 
-        elif classifier_info['classifier'] == 'cubist':
+        elif classifier_info["classifier"] == "cubist":
 
-            parameters = {'committees': committees_list,
-                          'rules': rules_list,
-                          'extrapolation': extrapolation_list,
-                          'unbiased': bool_list}
+            parameters = {
+                "committees": committees_list,
+                "rules": rules_list,
+                "extrapolation": extrapolation_list,
+                "unbiased": bool_list,
+            }
 
         else:
 
-            logger.error('  The model cannot be optimized.')
+            logger.error("  The model cannot be optimized.")
             return NameError
 
-        logger.info('  Finding the best paramaters for a {} model ...'.format(classifier_info['classifier']))
+        logger.info(
+            "  Finding the best paramaters for a {} model ...".format(
+                classifier_info["classifier"]
+            )
+        )
 
-        core_classifiers = ['c5', 'cubist', 'rf', 'rfr',
-                            'ab-rf', 'ab-ex-rf', 'ab-dt', 'ab-ex-dt',
-                            'abr', 'bag-dtr', 'ex-rf', 'ex-rfr', 'ex-dtr', 'dtr']
+        core_classifiers = [
+            "c5",
+            "cubist",
+            "rf",
+            "rfr",
+            "ab-rf",
+            "ab-ex-rf",
+            "ab-dt",
+            "ab-ex-dt",
+            "abr",
+            "bag-dtr",
+            "ex-rf",
+            "ex-rfr",
+            "ex-dtr",
+            "dtr",
+        ]
 
-        if classifier_info['classifier'] in core_classifiers:
+        if classifier_info["classifier"] in core_classifiers:
 
-            return self.grid_search(classifier_info['classifier'],
-                                    parameters,
-                                    file_name,
-                                    k_folds=k_folds,
-                                    perc_samp=perc_samp,
-                                    ignore_feas=ignore_feas,
-                                    use_xy=use_xy,
-                                    classes2remove=classes2remove,
-                                    method=method,
-                                    f1_class=f1_class,
-                                    stratified=stratified,
-                                    spacing=spacing,
-                                    output_file=output_file,
-                                    calibrate_proba=calibrate_proba)
+            return self.grid_search(
+                classifier_info["classifier"],
+                parameters,
+                file_name,
+                k_folds=k_folds,
+                perc_samp=perc_samp,
+                ignore_feas=ignore_feas,
+                use_xy=use_xy,
+                classes2remove=classes2remove,
+                method=method,
+                f1_class=f1_class,
+                stratified=stratified,
+                spacing=spacing,
+                output_file=output_file,
+                calibrate_proba=calibrate_proba,
+            )
 
-        elif (method == 'overall') and (classifier_info['classifier'] not in core_classifiers):
+        elif (method == "overall") and (
+            classifier_info["classifier"] not in core_classifiers
+        ):
 
-            clf = prediction_models[classifier_info['classifier']]
+            clf = prediction_models[classifier_info["classifier"]]
 
-            grid_search = GridSearchCV(clf,
-                                       param_grid=parameters,
-                                       n_jobs=classifier_info['n_jobs'],
-                                       cv=k_folds,
-                                       verbose=1)
+            grid_search = GridSearchCV(
+                clf,
+                param_grid=parameters,
+                n_jobs=classifier_info["n_jobs"],
+                cv=k_folds,
+                verbose=1,
+            )
 
             grid_search.fit(self.p_vars, self.labels)
 
             logger.info(grid_search.best_estimator_)
-            logger.info('  Best score: {:f}'.format(grid_search.best_score_))
-            logger.info('  Best parameters: {}'.format(grid_search.best_params_))
+            logger.info("  Best score: {:f}".format(grid_search.best_score_))
+            logger.info("  Best parameters: {}".format(grid_search.best_params_))
 
         else:
 
-            logger.error('  The score method {} is not supported.'.format(method))
+            logger.error("  The score method {} is not supported.".format(method))
             raise NameError
 
-    def cross_validation(self, X, y, n_splits=5, test_size=0.7, train_size=0.3, random_state=None, **kwargs):
-
+    def cross_validation(
+        self,
+        X,
+        y,
+        n_splits=5,
+        test_size=0.7,
+        train_size=0.3,
+        random_state=None,
+        **kwargs
+    ):
         """
         A cross validation function to replace scikit-learn,
         which does not handle the built-in VotingClassifier
@@ -7498,15 +8822,17 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
         from sklearn.model_selection import StratifiedShuffleSplit
         from sklearn.metrics import f1_score
 
-        kwargs['input_model'] = None
-        kwargs['output_model'] = None
+        kwargs["input_model"] = None
+        kwargs["output_model"] = None
 
         self.cv_scores = list()
 
-        splitter = StratifiedShuffleSplit(n_splits=n_splits,
-                                          test_size=test_size,
-                                          train_size=train_size,
-                                          random_state=random_state)
+        splitter = StratifiedShuffleSplit(
+            n_splits=n_splits,
+            test_size=test_size,
+            train_size=train_size,
+            random_state=random_state,
+        )
 
         for train_index, test_index in splitter.split(X, y):
 
@@ -7522,14 +8848,19 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             labels_predict = self.model.predict(p_vars_test)
 
-            score = f1_score(labels_test,
-                             labels_predict,
-                             average='weighted')
+            score = f1_score(labels_test, labels_predict, average="weighted")
 
             self.cv_scores.append(score)
 
-    def stack_majority(self, img, output_model, out_img, classifier_info, scale_data=False, ignore_feas=[]):
-
+    def stack_majority(
+        self,
+        img,
+        output_model,
+        out_img,
+        classifier_info,
+        scale_data=False,
+        ignore_feas=[],
+    ):
         """
         A majority vote filter.
 
@@ -7538,7 +8869,7 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
             output_model (str): The output model.
             out_img (str): The output map.
             classifier_info (dict): The model parameters dictionary.
-            scale_data (Optional[bool or str]): Whether to scale the data prior to classification. 
+            scale_data (Optional[bool or str]): Whether to scale the data prior to classification.
                 Default is False. *If ``scale_data`` is a string, the scaler will be loaded from the string text file.
             ignore_features (Optional[int list]): A list of features to ignore. Default is [].
 
@@ -7570,21 +8901,32 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
         map_list = []
 
-        for classifier in classifier_info['classifiers']:
+        for classifier in classifier_info["classifiers"]:
 
-            output_model = '%s/%s_%s%s' % (d_name_mdl, f_base_mdl, classifier, f_ext_mdl)
+            output_model = "%s/%s_%s%s" % (
+                d_name_mdl,
+                f_base_mdl,
+                classifier,
+                f_ext_mdl,
+            )
 
-            out_image_temp = '%s/%s_%s%s' % (d_name, f_base, classifier, f_ext)
+            out_image_temp = "%s/%s_%s%s" % (d_name, f_base, classifier, f_ext)
             map_list.append(out_image_temp)
 
-            classifier_info['classifier'] = classifier
+            classifier_info["classifier"] = classifier
 
-            self.construct_model(output_model=output_model, classifier_info=classifier_info)
+            self.construct_model(
+                output_model=output_model, classifier_info=classifier_info
+            )
 
             # load the model for multiproccessing
-            self.construct_model(input_model=output_model, classifier_info=classifier_info)
+            self.construct_model(
+                input_model=output_model, classifier_info=classifier_info
+            )
 
-            self.predict(img, out_image_temp, scale_data=scale_data, ignore_feas=ignore_feas)
+            self.predict(
+                img, out_image_temp, scale_data=scale_data, ignore_feas=ignore_feas
+            )
 
         with raster_tools.ropen(map_list[0]) as i_info:
 
@@ -7592,11 +8934,14 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
             i_info.bands = 1
 
-            with raster_tools.create_raster(out_img, i_info, bigtiff='yes') as out_rst:
+            with raster_tools.create_raster(out_img, i_info, bigtiff="yes") as out_rst:
 
                 out_rst.get_band(1)
 
-                rst_objs = [raster_tools.ropen(img).datasource.GetRasterBand(1) for img in map_list]
+                rst_objs = [
+                    raster_tools.ropen(img).datasource.GetRasterBand(1)
+                    for img in map_list
+                ]
 
                 if rows >= 512:
                     blk_size_rows = 512
@@ -7616,8 +8961,14 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 
                         n_cols = self._num_rows_cols(j, block_size_cls, cols)
 
-                        mode_img = np.vstack(([obj.ReadAsArray(j, i, n_cols, n_rows)
-                                               for obj in rst_objs])).reshape(len(map_list), n_rows, n_cols)
+                        mode_img = np.vstack(
+                            (
+                                [
+                                    obj.ReadAsArray(j, i, n_cols, n_rows)
+                                    for obj in rst_objs
+                                ]
+                            )
+                        ).reshape(len(map_list), n_rows, n_cols)
 
                         out_mode = stats.mode(mode_img)[0]
 
@@ -7635,7 +8986,8 @@ class classification(ModelOptions, PickleIt, Preprocessing, Samples, Visualizati
 def importr_tryhard(packname):
 
     from rpy2.robjects.packages import importr
-    utils = importr('utils')
+
+    utils = importr("utils")
 
     try:
         __ = importr(packname)
@@ -7644,7 +8996,6 @@ def importr_tryhard(packname):
 
 
 class classification_r(classification):
-
     """
     Class interface to R C5/Cubist
 
@@ -7654,7 +9005,7 @@ class classification_r(classification):
         >>> cl = classification_r()
         >>>
         >>> # load the samples
-        >>> # *Note that the sample instances are stored in cl.classification, 
+        >>> # *Note that the sample instances are stored in cl.classification,
         >>> # structurally different than using the base
         >>> # classification() which inherits the properties directly
         >>> cl.split_samples('/samples.txt', classes2remove=[4, 9],
@@ -7694,16 +9045,18 @@ class classification_r(classification):
         from rpy2.robjects.packages import importr
 
         from rpy2.robjects.numpy2ri import numpy2ri
+
         ro.numpy2ri.activate()
 
         # R vector of strings
         from rpy2.robjects.vectors import StrVector
 
         from rpy2.robjects import pandas2ri
+
         pandas2ri.activate()
 
         # import R's utility package
-        utils = importr('utils')
+        utils = importr("utils")
 
         R_installed = True
 
@@ -7718,7 +9071,12 @@ class classification_r(classification):
             utils.chooseCRANmirror(ind=1)  # select the first mirror in the list
 
             # R package names
-            package_names = ('cubist', 'C50', 'raster', 'rgdal')#, 'foreach', 'doSNOW')
+            package_names = (
+                "cubist",
+                "C50",
+                "raster",
+                "rgdal",
+            )  # , 'foreach', 'doSNOW')
 
             # Selectively install what needs to be install.
             # We are fancy, just because we can.
@@ -7735,16 +9093,16 @@ class classification_r(classification):
             # print('Importing R packages--{} ...'.format(', '.join(package_names)))
 
             # Cubist
-            Cubist = importr('cubist', suppress_messages=True)
+            Cubist = importr("cubist", suppress_messages=True)
 
             # C50
-            C50 = importr('C50', suppress_messages=True)
+            C50 = importr("C50", suppress_messages=True)
 
             # raster
-            raster = importr('raster', suppress_messages=True)
+            raster = importr("raster", suppress_messages=True)
 
             # rgdal
-            rgdal = importr('rgdal', suppress_messages=True)
+            rgdal = importr("rgdal", suppress_messages=True)
 
             # # foreach
             # foreach = importr('foreach', suppress_messages=True)
@@ -7761,10 +9119,16 @@ class classification_r(classification):
 
         self.OS_SYSTEM = platform.system()
 
-    def construct_r_model(self, input_model=None, output_model=None, write_summary=False,
-                          get_probs=False, cost_array=None, case_weights=None,
-                          classifier_info={'classifier': 'cubist'}):
-
+    def construct_r_model(
+        self,
+        input_model=None,
+        output_model=None,
+        write_summary=False,
+        get_probs=False,
+        cost_array=None,
+        case_weights=None,
+        classifier_info={"classifier": "cubist"},
+    ):
         """
         Trains a Cubist model.
 
@@ -7787,20 +9151,20 @@ class classification_r(classification):
                     B  [7, 1, 0]]
 
             case_weights (Optional[list or 1d array]): A list of case weights. Default is None.
-            classifier_info (dict): The model parameter dictionary: Default is {'classifier': 'cubist', 
+            classifier_info (dict): The model parameter dictionary: Default is {'classifier': 'cubist',
                 'committees': 5, 'rules': 100, 'extrap': 10})
         """
 
         if not R_installed:
 
-            logger.warning('  R and rpy2 must be installed to use C5 or Cubist.')
+            logger.warning("  R and rpy2 must be installed to use C5 or Cubist.")
             return
 
         self.get_probs = get_probs
 
         # replace forward slashes for Windows
-        if self.OS_SYSTEM == 'Windows':
-            output_model = output_model.replace('\\', '/')
+        if self.OS_SYSTEM == "Windows":
+            output_model = output_model.replace("\\", "/")
 
         if isinstance(input_model, str):
             self.classifier_info, self.model, self.headers = self.load(input_model)
@@ -7813,60 +9177,60 @@ class classification_r(classification):
 
         # Check if model parameters are set
         #   otherwise, set defaults.
-        if self.classifier_info['classifier'] == 'cubist':
+        if self.classifier_info["classifier"] == "cubist":
 
             # The number of committees.
-            if 'committees' not in self.classifier_info:
-                self.classifier_info['committees'] = 5
+            if "committees" not in self.classifier_info:
+                self.classifier_info["committees"] = 5
 
             # The number of rules.
-            if 'rules' not in self.classifier_info:
-                self.classifier_info['rules'] = 100
+            if "rules" not in self.classifier_info:
+                self.classifier_info["rules"] = 100
 
             # Whether to use unbiased rules.
-            if 'unbiased' not in self.classifier_info:
-                self.classifier_info['unbiased'] = False
+            if "unbiased" not in self.classifier_info:
+                self.classifier_info["unbiased"] = False
 
             # The extrapolation percentage, between 0-100.
-            if 'extrapolation' not in self.classifier_info:
-                self.classifier_info['extrapolation'] = 10
+            if "extrapolation" not in self.classifier_info:
+                self.classifier_info["extrapolation"] = 10
 
-        elif self.classifier_info['classifier'] == 'c5':
+        elif self.classifier_info["classifier"] == "c5":
 
             # The number of boosted trials.
-            if 'trials' not in self.classifier_info:
-                self.classifier_info['trials'] = 10
+            if "trials" not in self.classifier_info:
+                self.classifier_info["trials"] = 10
 
             # The minimum number of cases and node level.
-            if 'min_cases' not in self.classifier_info:
-                self.classifier_info['min_cases'] = 2
+            if "min_cases" not in self.classifier_info:
+                self.classifier_info["min_cases"] = 2
 
             # Whether to apply winnowing (i.e., feature selection)
-            if 'winnow' not in self.classifier_info:
-                self.classifier_info['winnow'] = False
+            if "winnow" not in self.classifier_info:
+                self.classifier_info["winnow"] = False
 
             # Whether to turn off global pruning
-            if 'no_prune' not in self.classifier_info:
-                self.classifier_info['no_prune'] = False
+            if "no_prune" not in self.classifier_info:
+                self.classifier_info["no_prune"] = False
 
             # The confidence factor for pruning. Low values result
             #   in more pruning.]
-            if 'CF' not in self.classifier_info:
-                self.classifier_info['CF'] = .25
+            if "CF" not in self.classifier_info:
+                self.classifier_info["CF"] = 0.25
 
             # Whether to apply a fuzzy threshold of probabilities.
-            if 'fuzzy' not in self.classifier_info:
-                self.classifier_info['fuzzy'] = False
+            if "fuzzy" not in self.classifier_info:
+                self.classifier_info["fuzzy"] = False
 
         else:
 
-            logger.error('  The classifier must be C5 or Cubist.')
+            logger.error("  The classifier must be C5 or Cubist.")
             raise NameError
 
         if isinstance(output_model, str):
 
             self.model_dir, self.model_base = os.path.split(output_model)
-            self.output_model = '{}/{}.tree'.format(self.model_dir, self.model_base)
+            self.output_model = "{}/{}.tree".format(self.model_dir, self.model_base)
 
             if os.path.isfile(self.output_model):
                 os.remove(self.output_model)
@@ -7887,9 +9251,9 @@ class classification_r(classification):
         samps = ro.r.matrix(self.p_vars, nrow=self.n_samps, ncol=self.n_feas)
         samps.colnames = StrVector(self.headers[:-1])
 
-        if 'cubist' in self.classifier_info['classifier']:
+        if "cubist" in self.classifier_info["classifier"]:
             labels = ro.FloatVector(self.labels)
-        elif 'c5' in self.classifier_info['classifier']:
+        elif "c5" in self.classifier_info["classifier"]:
             labels = ro.FactorVector(pd.Categorical(self.labels))
 
         if isinstance(case_weights, list) or isinstance(case_weights, np.ndarray):
@@ -7897,7 +9261,9 @@ class classification_r(classification):
 
         if isinstance(cost_array, np.ndarray):
 
-            cost_array = ro.r.matrix(cost_array, nrow=cost_array.shape[0], ncol=cost_array.shape[1])
+            cost_array = ro.r.matrix(
+                cost_array, nrow=cost_array.shape[0], ncol=cost_array.shape[1]
+            )
             cost_array.rownames = StrVector(sorted(self.classes))
             cost_array.colnames = StrVector(sorted(self.classes))
 
@@ -7908,53 +9274,72 @@ class classification_r(classification):
         # samps = samps.rx(True, ro.IntVector(tuple(range(3, self.n_feas+3))))
 
         # Train a Cubist model.
-        if 'cubist' in self.classifier_info['classifier']:
+        if "cubist" in self.classifier_info["classifier"]:
 
-            logger.info('  Training a Cubist model with {:d} committees, {:d} rules, {:d}% extrapolation, and {:,d} samples ...'.format(self.classifier_info['committees'],
-                                                                                                                                        self.classifier_info['rules'],
-                                                                                                                                        self.classifier_info['extrapolation'],
-                                                                                                                                        self.n_samps))
+            logger.info(
+                "  Training a Cubist model with {:d} committees, {:d} rules, {:d}% extrapolation, and {:,d} samples ...".format(
+                    self.classifier_info["committees"],
+                    self.classifier_info["rules"],
+                    self.classifier_info["extrapolation"],
+                    self.n_samps,
+                )
+            )
 
             # train the Cubist model
             # R('model = Cubist::cubist(x=samps, y=labels, committees=%d, control=cubistControl(rules=%d, extrapolation=%d))' % \
             #   (self.classifier_info['committees'], self.classifier_info['rules'], self.classifier_info['extrap']))
 
-            self.model = Cubist.cubist(x=samps, y=labels, committees=self.classifier_info['committees'],
-                                       control=Cubist.cubistControl(rules=self.classifier_info['rules'],
-                                                                    extrapolation=self.classifier_info['extrapolation'],
-                                                                    unbiased=self.classifier_info['unbiased']))
+            self.model = Cubist.cubist(
+                x=samps,
+                y=labels,
+                committees=self.classifier_info["committees"],
+                control=Cubist.cubistControl(
+                    rules=self.classifier_info["rules"],
+                    extrapolation=self.classifier_info["extrapolation"],
+                    unbiased=self.classifier_info["unbiased"],
+                ),
+            )
 
             if isinstance(output_model, str):
 
-                logger.info('  Writing the model to file ...')
+                logger.info("  Writing the model to file ...")
 
                 # Write the Cubist model and .names to file.
-                if self.OS_SYSTEM == 'Windows':
+                if self.OS_SYSTEM == "Windows":
 
                     # R('Cubist::exportCubistFiles(model, prefix="%s")' % self.model_base)
                     Cubist.exportCubistFiles(self.model, prefix=self.model_base)
 
                 else:
 
-                    self.dump([self.classifier_info,
-                               self.model,
-                               self.headers],
-                              self.output_model)
+                    self.dump(
+                        [self.classifier_info, self.model, self.headers],
+                        self.output_model,
+                    )
 
                 if write_summary:
 
-                    logger.info('  Writing the model summary to file ...')
+                    logger.info("  Writing the model summary to file ...")
 
                     # Write the Cubist model summary to file.
-                    with open(os.path.join(self.model_dir, '{}_summary.txt'.format(self.model_base)), 'wb') as out_tree:
+                    with open(
+                        os.path.join(
+                            self.model_dir, "{}_summary.txt".format(self.model_base)
+                        ),
+                        "wb",
+                    ) as out_tree:
                         out_tree.write(str(Cubist.print_summary_cubist(self.model)))
 
-        elif 'c5' in self.classifier_info['classifier']:
+        elif "c5" in self.classifier_info["classifier"]:
 
-            logger.info('  Training a C5 model with {:d} trials, {:.2f} CF, {:d} minimum cases, and {:,d} samples ...'.format(self.classifier_info['trials'],
-                                                                                                                              self.classifier_info['CF'],
-                                                                                                                              self.classifier_info['min_cases'],
-                                                                                                                              self.n_samps))
+            logger.info(
+                "  Training a C5 model with {:d} trials, {:.2f} CF, {:d} minimum cases, and {:,d} samples ...".format(
+                    self.classifier_info["trials"],
+                    self.classifier_info["CF"],
+                    self.classifier_info["min_cases"],
+                    self.n_samps,
+                )
+            )
 
             # train the C5 model
             # R('model = C50::C5.0(x=samps, y=factor(labels), trials=%d, control=C5.0Control(CF=%f, minCases=%d))' % \
@@ -7963,47 +9348,71 @@ class classification_r(classification):
             # weights = case_weights,
             # costs = cost_array,
 
-            self.model = C50.C5_0(x=samps, y=labels,
-                                  trials=self.classifier_info['trials'],
-                                  control=C50.C5_0Control(CF=self.classifier_info['CF'],
-                                                          minCases=self.classifier_info['min_cases'],
-                                                          winnow=self.classifier_info['winnow'],
-                                                          noGlobalPruning=self.classifier_info['no_prune'],
-                                                          fuzzyThreshold=self.classifier_info['fuzzy'],
-                                                          label='response'))
+            self.model = C50.C5_0(
+                x=samps,
+                y=labels,
+                trials=self.classifier_info["trials"],
+                control=C50.C5_0Control(
+                    CF=self.classifier_info["CF"],
+                    minCases=self.classifier_info["min_cases"],
+                    winnow=self.classifier_info["winnow"],
+                    noGlobalPruning=self.classifier_info["no_prune"],
+                    fuzzyThreshold=self.classifier_info["fuzzy"],
+                    label="response",
+                ),
+            )
 
             if isinstance(output_model, str):
 
-                logger.info('  Writing the model to file ...')
+                logger.info("  Writing the model to file ...")
 
                 # Write the C5 tree to file.
-                if self.OS_SYSTEM == 'Windows':
+                if self.OS_SYSTEM == "Windows":
 
-                    with open(self.output_model, 'wb') as out_tree:
+                    with open(self.output_model, "wb") as out_tree:
 
-                        ro.globalenv['model'] = self.model
-                        out_tree.write(str(ro.r('model$tree')))
+                        ro.globalenv["model"] = self.model
+                        out_tree.write(str(ro.r("model$tree")))
 
                 else:
 
-                    self.dump([self.classifier_info,
-                               self.model,
-                               self.headers],
-                              self.output_model)
+                    self.dump(
+                        [self.classifier_info, self.model, self.headers],
+                        self.output_model,
+                    )
 
                 if write_summary:
 
-                    logger.info('  Writing the model summary to file (this may take a few minutes with large trees) ...')
+                    logger.info(
+                        "  Writing the model summary to file (this may take a few minutes with large trees) ..."
+                    )
 
                     # Write the C5 model summary to file.
-                    with open(os.path.join(self.model_dir, '{}_summary.txt'.format(self.model_base)), 'wb') as out_imp:
+                    with open(
+                        os.path.join(
+                            self.model_dir, "{}_summary.txt".format(self.model_base)
+                        ),
+                        "wb",
+                    ) as out_imp:
                         out_imp.write(str(C50.print_summary_C5_0(self.model)))
 
-    def predict_c5_cubist(self, input_image, out_image, input_model=None, in_samps=None,
-                          ignore_feas=[], row_block_size=1024, col_block_size=1024,
-                          mask_background=None, background_band=0, background_value=0,
-                          minimum_observations=0, observation_band=0, n_jobs=-1, chunk_size=1024):
-
+    def predict_c5_cubist(
+        self,
+        input_image,
+        out_image,
+        input_model=None,
+        in_samps=None,
+        ignore_feas=[],
+        row_block_size=1024,
+        col_block_size=1024,
+        mask_background=None,
+        background_band=0,
+        background_value=0,
+        minimum_observations=0,
+        observation_band=0,
+        n_jobs=-1,
+        chunk_size=1024,
+    ):
         """
         Predicts class labels from C5 or Cubist model.
 
@@ -8034,8 +9443,8 @@ class classification_r(classification):
         d_name, f_name = os.path.split(self.out_image)
         f_base, f_ext = os.path.splitext(f_name)
 
-        self.out_image_temp = os.path.join(d_name, '{}_temp.tif'.format(f_base))
-        self.record_keeping = os.path.join(d_name, '{}_record.txt'.format(f_base))
+        self.out_image_temp = os.path.join(d_name, "{}_temp.tif".format(f_base))
+        self.record_keeping = os.path.join(d_name, "{}_record.txt".format(f_base))
 
         if os.path.isfile(self.record_keeping):
             self.record_list = self.load(self.record_keeping)
@@ -8045,7 +9454,7 @@ class classification_r(classification):
         if isinstance(input_model, str):
             self.classifier_info, self.model, self.headers = self.load(input_model)
 
-        if self.OS_SYSTEM == 'Windows':
+        if self.OS_SYSTEM == "Windows":
 
             # input_model = input_model.replace('\\', '/')
             # in_samps = in_samps.replace('\\', '/')
@@ -8058,12 +9467,12 @@ class classification_r(classification):
             if not os.path.isdir(out_image_dir):
                 os.makedirs(out_image_dir)
 
-            if 'img' in f_ext.lower():
-                out_type = 'HFA'
-            elif 'tif' in f_ext.lower():
-                out_type = 'GTiff'
+            if "img" in f_ext.lower():
+                out_type = "HFA"
+            elif "tif" in f_ext.lower():
+                out_type = "GTiff"
             else:
-                sys.exit('\nERROR!! The file extension is not supported.\n')
+                sys.exit("\nERROR!! The file extension is not supported.\n")
 
             self.model_dir, self.model_base = os.path.split(input_model)
 
@@ -8077,14 +9486,14 @@ class classification_r(classification):
             # build the icases file
             self._build_icases(in_samps, tree_model)
 
-            if 'c5' in tree_model:
+            if "c5" in tree_model:
 
                 # write the .names and .data files to text
                 self._build_C5_names(in_samps)
 
             # self.mapC5_dir = os.path.realpath('../helpers/mapC5')
             # python_home = 'C:/Python27/ArcGIS10.1/Lib/site-packages'
-            self.mapC5_dir = os.path.join(MPPATH, 'helpers/mapC5')
+            self.mapC5_dir = os.path.join(MPPATH, "helpers/mapC5")
 
             # copy the mapC5 files to the model directory
             self._copy_mapC5(tree_model)
@@ -8093,21 +9502,28 @@ class classification_r(classification):
             os.chdir(self.model_dir)
 
             # execute mapC5
-            if tree_model == 'cubist':
+            if tree_model == "cubist":
 
-                com = os.path.join(self.model_dir, 'mapCubist_v202.exe {} {} {}\{}'.format(self.model_base,
-                                                                                           out_type,
-                                                                                           out_image_dir,
-                                                                                           out_image_base))
+                com = os.path.join(
+                    self.model_dir,
+                    "mapCubist_v202.exe {} {} {}\{}".format(
+                        self.model_base, out_type, out_image_dir, out_image_base
+                    ),
+                )
 
-            elif tree_model == 'c5':
+            elif tree_model == "c5":
 
-                com = os.path.join(self.model_dir, 'mapC5_v202.exe {} {} {}\{} {}\{}_error'.format(self.model_base,
-                                                                                                   out_type,
-                                                                                                   out_image_dir,
-                                                                                                   out_image_base,
-                                                                                                   out_image_dir,
-                                                                                                   out_image_base))
+                com = os.path.join(
+                    self.model_dir,
+                    "mapC5_v202.exe {} {} {}\{} {}\{}_error".format(
+                        self.model_base,
+                        out_type,
+                        out_image_dir,
+                        out_image_base,
+                        out_image_dir,
+                        out_image_base,
+                    ),
+                )
 
             subprocess.call(com, shell=True)
 
@@ -8119,7 +9535,13 @@ class classification_r(classification):
             self.i_info = raster_tools.ropen(input_image)
 
             if self.ignore_feas:
-                bands = sorted([bd for bd in range(1, self.i_info.bands + 1) if bd not in self.ignore_feas])
+                bands = sorted(
+                    [
+                        bd
+                        for bd in range(1, self.i_info.bands + 1)
+                        if bd not in self.ignore_feas
+                    ]
+                )
             else:
                 bands = list(range(1, self.i_info.bands + 1))
 
@@ -8129,19 +9551,26 @@ class classification_r(classification):
             # Set the number of output bands.
             self.o_info.bands = 1
 
-            if self.classifier_info['classifier'] == 'cubist':
-                self.o_info.storage = 'float32'
+            if self.classifier_info["classifier"] == "cubist":
+                self.o_info.storage = "float32"
             else:
-                self.o_info.storage = 'byte'
+                self.o_info.storage = "byte"
 
             self.o_info.close()
 
             # Create the output image
             if isinstance(self.mask_background, str):
-                out_raster_object = raster_tools.create_raster(self.out_image_temp, self.o_info,
-                                                               compress='none', tile=False, bigtiff='yes')
+                out_raster_object = raster_tools.create_raster(
+                    self.out_image_temp,
+                    self.o_info,
+                    compress="none",
+                    tile=False,
+                    bigtiff="yes",
+                )
             else:
-                out_raster_object = raster_tools.create_raster(self.out_image, self.o_info, tile=False)
+                out_raster_object = raster_tools.create_raster(
+                    self.out_image, self.o_info, tile=False
+                )
 
             out_raster_object.get_band(1)
             out_raster_object.fill(0)
@@ -8149,9 +9578,12 @@ class classification_r(classification):
             rows = self.i_info.rows
             cols = self.i_info.cols
 
-            block_rows, block_cols = raster_tools.block_dimensions(rows, cols,
-                                                                   row_block_size=self.row_block_size,
-                                                                   col_block_size=self.col_block_size)
+            block_rows, block_cols = raster_tools.block_dimensions(
+                rows,
+                cols,
+                row_block_size=self.row_block_size,
+                col_block_size=self.col_block_size,
+            )
 
             n_blocks = 0
             for i in range(0, rows, block_rows):
@@ -8160,7 +9592,7 @@ class classification_r(classification):
 
             n_block = 1
 
-            logger.info('  Mapping labels ...')
+            logger.info("  Mapping labels ...")
 
             for i in range(0, rows, block_rows):
 
@@ -8168,23 +9600,27 @@ class classification_r(classification):
 
                 for j in range(0, cols, block_cols):
 
-                    logger.info('  Block {:,d} of {:,d} ...'.format(n_block, n_blocks))
+                    logger.info("  Block {:,d} of {:,d} ...".format(n_block, n_blocks))
                     n_block += 1
 
                     if n_block in self.record_list:
 
-                        logger.info('  Skipping current block ...')
+                        logger.info("  Skipping current block ...")
                         continue
 
                     n_cols = self._num_rows_cols(j, block_cols, cols)
 
-                    features = raster_tools.read(file_name=input_image,
-                                                 bands=bands,
-                                                 i=i, j=j,
-                                                 rows=n_rows, cols=n_cols,
-                                                 predictions=True,
-                                                 d_type='float32',
-                                                 n_jobs=-1)
+                    features = raster_tools.read(
+                        file_name=input_image,
+                        bands=bands,
+                        i=i,
+                        j=j,
+                        rows=n_rows,
+                        cols=n_cols,
+                        predictions=True,
+                        d_type="float32",
+                        n_jobs=-1,
+                    )
 
                     # Load
                     predict_samps = pandas2ri.py2ri(pd.DataFrame(features))
@@ -8203,18 +9639,36 @@ class classification_r(classification):
 
                     if isinstance(self.input_model, str):
 
-                        predicted = joblib.Parallel(n_jobs=self.n_jobs,
-                                             max_nbytes=None)(joblib.delayed(self.c5_predict_parallel)(input_model, ip)
-                                                              for ip in indice_pairs)
+                        predicted = joblib.Parallel(
+                            n_jobs=self.n_jobs, max_nbytes=None
+                        )(
+                            joblib.delayed(self.c5_predict_parallel)(input_model, ip)
+                            for ip in indice_pairs
+                        )
 
                         # Write the predictions to file.
-                        out_raster_object.write_array(np.array(list(itertools.chain.from_iterable(predicted))).reshape(n_cols, n_rows).T, i, j)
+                        out_raster_object.write_array(
+                            np.array(list(itertools.chain.from_iterable(predicted)))
+                            .reshape(n_cols, n_rows)
+                            .T,
+                            i,
+                            j,
+                        )
 
                     else:
 
                         # Write the predictions to file.
-                        out_raster_object.write_array(np.uint8(pandas2ri.ri2py(C50.predict_C5_0(self.model,
-                                                                                                newdata=predict_samps))).reshape(n_cols, n_rows).T, i, j)
+                        out_raster_object.write_array(
+                            np.uint8(
+                                pandas2ri.ri2py(
+                                    C50.predict_C5_0(self.model, newdata=predict_samps)
+                                )
+                            )
+                            .reshape(n_cols, n_rows)
+                            .T,
+                            i,
+                            j,
+                        )
 
                     self.record_list.append(n_block)
 
@@ -8224,9 +9678,15 @@ class classification_r(classification):
 
             if isinstance(self.mask_background, str):
 
-                self._mask_background(self.out_image_temp, self.out_image, self.mask_background,
-                                      self.background_band, self.background_value, self.minimum_observations,
-                                      self.observation_band)
+                self._mask_background(
+                    self.out_image_temp,
+                    self.out_image,
+                    self.mask_background,
+                    self.background_band,
+                    self.background_value,
+                    self.minimum_observations,
+                    self.observation_band,
+                )
 
             # ro.r('x = new("GDALReadOnlyDataset", "{}")'.format(input_image))
 
@@ -8251,7 +9711,6 @@ class classification_r(classification):
     #     return np.uint8(pandas2ri.ri2py(C50.predict_C5_0(m, newdata=predict_samps[ip[0]:ip[0]+ip[1]])))
 
     def _build_icases(self, in_samps, tree_model):
-
         """
         Creates the icases file needed to run mapC5
 
@@ -8260,31 +9719,30 @@ class classification_r(classification):
             tree_model (str): 'c5' or 'cubist'
         """
 
-        icases_txt = os.path.join(self.model_dir, '{}.icases'.format(self.model_base))
+        icases_txt = os.path.join(self.model_dir, "{}.icases".format(self.model_base))
 
         # the output icases file
         if os.path.isfile(icases_txt):
             os.remove(icases_txt)
 
-        icases = open(icases_txt, 'w')
+        icases = open(icases_txt, "w")
 
-        if 'cubist' in tree_model:
-            icases.write('{} ignore 1\n'.format(self.headers[-1]))
-        elif 'c5' in tree_model:
-            icases.write('X ignore 1\n')
-            icases.write('Y ignore 1\n')
+        if "cubist" in tree_model:
+            icases.write("{} ignore 1\n".format(self.headers[-1]))
+        elif "c5" in tree_model:
+            icases.write("X ignore 1\n")
+            icases.write("Y ignore 1\n")
 
         bd = 1
         for hdr in self.headers[2:-1]:
 
-            icases.write('{} {} {:d}\n'.format(hdr, self.input_image, bd))
+            icases.write("{} {} {:d}\n".format(hdr, self.input_image, bd))
 
             bd += 1
 
         icases.close()
 
     def _build_C5_names(self, in_samps):
-
         """
         Builds the C5 .names file.
 
@@ -8292,8 +9750,8 @@ class classification_r(classification):
             in_samps (str): The samples used to train the model.
         """
 
-        names_txt = os.path.join(self.model_dir, '{}.names'.format(self.model_base))
-        data_txt = os.path.join(self.model_dir, '{}.data'.format(self.model_base))
+        names_txt = os.path.join(self.model_dir, "{}.names".format(self.model_base))
+        data_txt = os.path.join(self.model_dir, "{}.data".format(self.model_base))
 
         # the output .names file
         if os.path.isfile(names_txt):
@@ -8305,24 +9763,23 @@ class classification_r(classification):
         # create the .data file
         shutil.copy2(in_samps, data_txt)
 
-        names = open(names_txt, 'w')
+        names = open(names_txt, "w")
 
-        names.write('{}.\n\n'.format(self.headers[-1]))
-        names.write('X: ignore.\n')
-        names.write('Y: ignore.\n')
+        names.write("{}.\n\n".format(self.headers[-1]))
+        names.write("X: ignore.\n")
+        names.write("Y: ignore.\n")
 
         for hdr in self.headers[2:-1]:
 
-            names.write('{}: continuous.\n'.format(hdr))
+            names.write("{}: continuous.\n".format(hdr))
 
         # write the classes
-        class_str_list = ','.join(list(map(str, sorted(self.classes))))
-        names.write('{}: {}'.format(self.headers[-1], class_str_list))
+        class_str_list = ",".join(list(map(str, sorted(self.classes))))
+        names.write("{}: {}".format(self.headers[-1], class_str_list))
 
         names.close()
 
     def _copy_mapC5(self, tree_model):
-
         """
         Copies files needed to run mapC5.
 
@@ -8330,13 +9787,27 @@ class classification_r(classification):
             tree_model (str): The decision tree model to use ('c5' or 'cubist').
         """
 
-        if tree_model == 'cubist':
+        if tree_model == "cubist":
 
-            mapC5_list = ['gdal13.dll', 'gdal15.dll', 'install.bat', 'mapCubist_v202.exe', 'msvcp71.dll', 'msvcr71.dll']
+            mapC5_list = [
+                "gdal13.dll",
+                "gdal15.dll",
+                "install.bat",
+                "mapCubist_v202.exe",
+                "msvcp71.dll",
+                "msvcr71.dll",
+            ]
 
-        elif tree_model == 'c5':
+        elif tree_model == "c5":
 
-            mapC5_list = ['gdal13.dll', 'gdal15.dll', 'install.bat', 'mapC5_v202.exe', 'msvcp71.dll', 'msvcr71.dll']
+            mapC5_list = [
+                "gdal13.dll",
+                "gdal15.dll",
+                "install.bat",
+                "mapC5_v202.exe",
+                "msvcp71.dll",
+                "msvcr71.dll",
+            ]
 
         for mapC5_item in mapC5_list:
 
@@ -8347,18 +9818,31 @@ class classification_r(classification):
                 shutil.copy2(full_item, out_item)
 
     def _clean_mapC5(self, tree_model):
-
         """
         Cleans the C5 directories
         """
 
-        if tree_model == 'cubist':
+        if tree_model == "cubist":
 
-            mapC5_list = ['gdal13.dll', 'gdal15.dll', 'install.bat', 'mapCubist_v202.exe', 'msvcp71.dll', 'msvcr71.dll']
+            mapC5_list = [
+                "gdal13.dll",
+                "gdal15.dll",
+                "install.bat",
+                "mapCubist_v202.exe",
+                "msvcp71.dll",
+                "msvcr71.dll",
+            ]
 
-        elif tree_model == 'c5':
+        elif tree_model == "c5":
 
-            mapC5_list = ['gdal13.dll', 'gdal15.dll', 'install.bat', 'mapC5_v202.exe', 'msvcp71.dll', 'msvcr71.dll']
+            mapC5_list = [
+                "gdal13.dll",
+                "gdal15.dll",
+                "install.bat",
+                "mapC5_v202.exe",
+                "msvcp71.dll",
+                "msvcr71.dll",
+            ]
 
         for mapC5_item in mapC5_list:
 
@@ -8370,7 +9854,8 @@ class classification_r(classification):
 
 def _examples():
 
-    sys.exit("""\
+    sys.exit(
+        """\
 
     --Find the optimum RF maximum depth--
     classification.py -s /samples.txt -p .5 --optimize 10
@@ -8449,12 +9934,14 @@ def _examples():
     --Test model accuracy--
     classification.py -s /samples.txt --accuracy /accuracy.txt
     ... would test the accuracy of a new RF model on 10% of data withheld from training
-    """)
+    """
+    )
 
 
 def _usage():
 
-    sys.exit("""\
+    sys.exit(
+        """\
 
     classification.py ...
 
@@ -8504,7 +9991,8 @@ def _usage():
     [--options <Print list of classifier options>]
     [-e <Prints examples>
 
-    """)
+    """
+    )
 
 
 def main():
@@ -8523,7 +10011,7 @@ def main():
     perc_samp = 0.9
     perc_samp_each = 0
     scale_data = False
-    labs_type = 'int'
+    labs_type = "int"
     class_subs = dict()
     recode_dict = dict()
     classes2remove = list()
@@ -8533,15 +10021,15 @@ def main():
     outrm = False
     locate_outliers = False
     semi = False
-    semi_kernel = 'knn'
+    semi_kernel = "knn"
     feature_space = list()
     decision_function = list()
     header = True
     norm_struct = True
-    classifier_info = {'classifier': 'rf'}
+    classifier_info = {"classifier": "rf"}
     var_imp = True
     rank_method = None
-    top_feas = 1.
+    top_feas = 1.0
     out_acc = None
     get_majority = False
     optimize = False
@@ -8557,46 +10045,54 @@ def main():
 
         arg = argv[i]
 
-        if arg == '-i':
+        if arg == "-i":
             i += 1
             img = argv[i]
 
-        elif arg == '-o':
+        elif arg == "-o":
             i += 1
             out_img = argv[i]
 
-        elif arg == '-or':
+        elif arg == "-or":
             i += 1
             out_img_rank = argv[i]
 
-        elif arg == '-s':
+        elif arg == "-s":
             i += 1
             samples = argv[i]
 
-        elif arg == '--scale':
+        elif arg == "--scale":
             i += 1
             scale_data = argv[i]
 
-            if scale_data == 'yes':
+            if scale_data == "yes":
                 scale_data = True
 
-        elif arg == '--parameters':
+        elif arg == "--parameters":
             i += 1
 
             classifier_info = argv[i]
-            classifier_info = classifier_info.split(',')
+            classifier_info = classifier_info.split(",")
 
-            info_dict = '{'
+            info_dict = "{"
             cli_ctr = 1
             for cli in classifier_info:
 
-                cli_split = cli.split(':')
+                cli_split = cli.split(":")
 
-                if 'classifiers' in cli:
+                if "classifiers" in cli:
                     if cli_ctr == len(classifier_info):
-                        info_dict = "%s'%s':%s" % (info_dict, cli_split[0], cli_split[1].split('-'))
+                        info_dict = "%s'%s':%s" % (
+                            info_dict,
+                            cli_split[0],
+                            cli_split[1].split("-"),
+                        )
                     else:
-                        info_dict = "%s'%s':%s," % (info_dict, cli_split[0], cli_split[1].split('-'))
+                        info_dict = "%s'%s':%s," % (
+                            info_dict,
+                            cli_split[0],
+                            cli_split[1].split("-"),
+                        )
                 elif cli_ctr == len(classifier_info):
                     info_dict = "%s'%s':'%s'" % (info_dict, cli_split[0], cli_split[1])
                 else:
@@ -8604,7 +10100,7 @@ def main():
 
                 cli_ctr += 1
 
-            info_dict = '%s}' % info_dict
+            info_dict = "%s}" % info_dict
 
             classifier_info = ast.literal_eval(info_dict)
 
@@ -8623,175 +10119,180 @@ def main():
                     except:
                         pass
 
-        elif arg == '-p':
+        elif arg == "-p":
             i += 1
             perc_samp = float(argv[i])
 
-        elif arg == '-pe':
+        elif arg == "-pe":
             i += 1
             perc_samp_each = float(argv[i])
 
-        elif arg == '--subs':
+        elif arg == "--subs":
             i += 1
 
-            class_subs = ''.join(argv[i])
-            class_subs = '{%s}' % class_subs
+            class_subs = "".join(argv[i])
+            class_subs = "{%s}" % class_subs
 
             class_subs = ast.literal_eval(class_subs)
 
-        elif arg == '--recode':
+        elif arg == "--recode":
             i += 1
 
-            recode_dict = ''.join(argv[i])
-            recode_dict = '{%s}' % recode_dict
+            recode_dict = "".join(argv[i])
+            recode_dict = "{%s}" % recode_dict
 
             recode_dict = ast.literal_eval(recode_dict)
 
-        elif arg == '-clrm':
+        elif arg == "-clrm":
             i += 1
-            classes2remove = argv[i].split(',')
+            classes2remove = argv[i].split(",")
             classes2remove = list(map(int, classes2remove))
 
-        elif arg == '-valrm':
+        elif arg == "-valrm":
             i += 1
-            valrm_fea = argv[i].split(',')
+            valrm_fea = argv[i].split(",")
             valrm_fea = list(map(int, valrm_fea))
 
-        elif arg == '-ig':
+        elif arg == "-ig":
             i += 1
-            ignore_feas = argv[i].split(',')
+            ignore_feas = argv[i].split(",")
             ignore_feas = list(map(int, ignore_feas))
 
-        elif arg == '-xy':
+        elif arg == "-xy":
             i += 1
             use_xy = argv[i]
-            if use_xy == 'yes':
+            if use_xy == "yes":
                 use_xy = True
 
-        elif arg == '--outliers':
+        elif arg == "--outliers":
             i += 1
             outrm = argv[i]
-            if outrm == 'yes':
+            if outrm == "yes":
                 outrm = True
 
-        elif arg == '--loc_outliers':
+        elif arg == "--loc_outliers":
             i += 1
             locate_outliers = argv[i]
-            if locate_outliers == 'yes':
+            if locate_outliers == "yes":
                 locate_outliers = True
 
-        elif arg == '--semi':
+        elif arg == "--semi":
             i += 1
             semi = argv[i]
-            if semi == 'yes':
+            if semi == "yes":
                 semi = True
 
-        elif arg == '-semik':
+        elif arg == "-semik":
             i += 1
             semi_kernel = argv[i]
 
-        elif arg == '--visualize':
+        elif arg == "--visualize":
             i += 1
-            feature_space = argv[i].split(',')
+            feature_space = argv[i].split(",")
             feature_space = list(map(int, feature_space))
 
-        elif arg == '--decision':
+        elif arg == "--decision":
             i += 1
-            decision_function = argv[i].split(',')
+            decision_function = argv[i].split(",")
             decision_function = list(map(int, decision_function))
 
-        elif arg == '--optimize':
+        elif arg == "--optimize":
             i += 1
-            if argv[i] == 'yes':
+            if argv[i] == "yes":
                 optimize = True
 
-        elif arg == '-mi':
+        elif arg == "-mi":
             i += 1
             input_model = argv[i]
 
-        elif arg == '-mo':
+        elif arg == "-mo":
             i += 1
             output_model = argv[i]
 
-        elif arg == '--rank':
+        elif arg == "--rank":
             i += 1
             rank_method = argv[i]
 
-        elif arg == '-rankt':
+        elif arg == "-rankt":
             i += 1
             rank_txt = argv[i]
 
-        elif arg == '-labst':
+        elif arg == "-labst":
             i += 1
             labs_type = argv[i]
 
-        elif arg == '-topf':
+        elif arg == "-topf":
             i += 1
             top_feas = argv[i]
 
-            if '.' in top_feas:
+            if "." in top_feas:
                 top_feas = float(top_feas)
             else:
                 top_feas = int(top_feas)
 
-        elif arg == '--accuracy':
+        elif arg == "--accuracy":
             i += 1
             out_acc = argv[i]
 
-        elif arg == '--majority':
+        elif arg == "--majority":
             i += 1
             get_majority = argv[i]
-            if get_majority == 'yes':
+            if get_majority == "yes":
                 get_majority = True
 
-        elif arg == '-probs':
+        elif arg == "-probs":
             i += 1
             get_probs = argv[i]
 
-            if get_probs == 'yes':
+            if get_probs == "yes":
                 get_probs = True
 
-        elif arg == '-addl':
+        elif arg == "-addl":
             i += 1
-            additional_layers = argv[i].split(',')
+            additional_layers = argv[i].split(",")
 
-        elif arg == '--jobs':
+        elif arg == "--jobs":
             i += 1
             n_jobs = int(argv[i])
 
-        elif arg == '-bc':
+        elif arg == "-bc":
             i += 1
             band_check = int(argv[i])
 
-        elif arg == '-c':
+        elif arg == "-c":
             i += 1
             chunk_size = int(argv[i])
 
-        elif arg == '-h':
+        elif arg == "-h":
             _usage()
 
-        elif arg == '-e':
+        elif arg == "-e":
             _examples()
 
-        elif arg == '--options':
+        elif arg == "--options":
             _options()
 
-        elif arg[:1] == ':':
-            logger.info('  Unrecognized command option: %s' % arg)
+        elif arg[:1] == ":":
+            logger.info("  Unrecognized command option: %s" % arg)
             _usage()
 
         i += 1
 
-    logger.info('\nStart date & time --- (%s)\n' % time.asctime(time.localtime(time.time())))
+    logger.info(
+        "\nStart date & time --- (%s)\n" % time.asctime(time.localtime(time.time()))
+    )
 
     start_time = time.time()
 
     try:
-        dummy = classifier_info['classifier']
+        dummy = classifier_info["classifier"]
     except:
-        classifier_info['classifier'] = 'rf'
+        classifier_info["classifier"] = "rf"
 
-    if 'cubist' in classifier_info['classifier'] or 'c5' in classifier_info['classifier']:
+    if (
+        "cubist" in classifier_info["classifier"]
+        or "c5" in classifier_info["classifier"]
+    ):
 
         # create the C5/Cubist object
         cl = c5_cubist()
@@ -8801,9 +10302,19 @@ def main():
             if rank_method:
                 scale_data = True
 
-            cl.split_samples(samples, perc_samp=perc_samp, perc_samp_each=perc_samp_each, scale_data=scale_data, \
-                           class_subs=class_subs, header=header, norm_struct=norm_struct, labs_type=labs_type, \
-                           recode_dict=recode_dict, classes2remove=classes2remove, ignore_feas=ignore_feas)
+            cl.split_samples(
+                samples,
+                perc_samp=perc_samp,
+                perc_samp_each=perc_samp_each,
+                scale_data=scale_data,
+                class_subs=class_subs,
+                header=header,
+                norm_struct=norm_struct,
+                labs_type=labs_type,
+                recode_dict=recode_dict,
+                classes2remove=classes2remove,
+                ignore_feas=ignore_feas,
+            )
 
             if valrm_fea:
                 cl.remove_values(valrm_fea[0], valrm_fea[1])
@@ -8828,7 +10339,13 @@ def main():
         # predict labels
         if input_model and out_img:
 
-            cl.map_labels_c5_cubist(input_model, samples, img, out_img, tree_model=classifier_info['classifier'])
+            cl.map_labels_c5_cubist(
+                input_model,
+                samples,
+                img,
+                out_img,
+                tree_model=classifier_info["classifier"],
+            )
 
     else:
 
@@ -8838,20 +10355,36 @@ def main():
         # get predictive variables and class labels data
         if optimize:
 
-            cl.optimize_parameters(samples, classifier_info, perc_samp, max_depth_range=(1, 100), k_folds=optimize)
+            cl.optimize_parameters(
+                samples,
+                classifier_info,
+                perc_samp,
+                max_depth_range=(1, 100),
+                k_folds=optimize,
+            )
 
-            logger.info('  The optimum depth was %d' % cl.opt_depth)
-            logger.info('  The maximum accuracy was %f' % cl.max_acc)
+            logger.info("  The optimum depth was %d" % cl.opt_depth)
+            logger.info("  The maximum accuracy was %f" % cl.max_acc)
 
         if samples:
 
             if rank_method:
                 scale_data = True
 
-            cl.split_samples(samples, perc_samp=perc_samp, perc_samp_each=perc_samp_each, scale_data=scale_data, \
-                           class_subs=class_subs, header=header, norm_struct=norm_struct, labs_type=labs_type, \
-                           recode_dict=recode_dict, classes2remove=classes2remove, ignore_feas=ignore_feas, \
-                           use_xy=use_xy)
+            cl.split_samples(
+                samples,
+                perc_samp=perc_samp,
+                perc_samp_each=perc_samp_each,
+                scale_data=scale_data,
+                class_subs=class_subs,
+                header=header,
+                norm_struct=norm_struct,
+                labs_type=labs_type,
+                recode_dict=recode_dict,
+                classes2remove=classes2remove,
+                ignore_feas=ignore_feas,
+                use_xy=use_xy,
+            )
 
             if feature_space:
 
@@ -8866,7 +10399,12 @@ def main():
                 else:
                     classified_labels = None
 
-                cl.vis_data(feature_space[0], feature_space[1], fea_3=fea_z, labels=classified_labels)
+                cl.vis_data(
+                    feature_space[0],
+                    feature_space[1],
+                    fea_3=fea_z,
+                    labels=classified_labels,
+                )
 
             if valrm_fea:
 
@@ -8883,7 +10421,12 @@ def main():
                     else:
                         fea_z = None
 
-                    cl.vis_data(feature_space[0], feature_space[1], fea_3=fea_z, labels=classified_labels)
+                    cl.vis_data(
+                        feature_space[0],
+                        feature_space[1],
+                        fea_3=fea_z,
+                        labels=classified_labels,
+                    )
 
             if outrm:
 
@@ -8896,23 +10439,54 @@ def main():
                     else:
                         fea_z = None
 
-                    cl.vis_data(feature_space[0], feature_space[1], fea_3=fea_z, labels=classified_labels)
+                    cl.vis_data(
+                        feature_space[0],
+                        feature_space[1],
+                        fea_3=fea_z,
+                        labels=classified_labels,
+                    )
 
             if decision_function:
 
-                cl.vis_decision(decision_function[0], decision_function[1], classifier_info=classifier_info,
-                                class2check=decision_function[2], compare=decision_function[3],
-                                locate_outliers=locate_outliers)
+                cl.vis_decision(
+                    decision_function[0],
+                    decision_function[1],
+                    classifier_info=classifier_info,
+                    class2check=decision_function[2],
+                    compare=decision_function[3],
+                    locate_outliers=locate_outliers,
+                )
 
         if get_majority:
 
-            cl.stack_majority(img, output_model, out_img, classifier_info, scale_data, ignore_feas=ignore_feas)
+            cl.stack_majority(
+                img,
+                output_model,
+                out_img,
+                classifier_info,
+                scale_data,
+                ignore_feas=ignore_feas,
+            )
 
-        if input_model or output_model or img or (rank_method == 'rf') or out_acc and not get_majority and \
-                (rank_method != 'chi2'):
+        if (
+            input_model
+            or output_model
+            or img
+            or (rank_method == "rf")
+            or out_acc
+            and not get_majority
+            and (rank_method != "chi2")
+        ):
 
-            cl.construct_model(input_model=input_model, output_model=output_model, classifier_info=classifier_info,
-                               var_imp=var_imp, rank_method=rank_method, top_feas=top_feas, get_probs=get_probs)
+            cl.construct_model(
+                input_model=input_model,
+                output_model=output_model,
+                classifier_info=classifier_info,
+                var_imp=var_imp,
+                rank_method=rank_method,
+                top_feas=top_feas,
+                get_probs=get_probs,
+            )
 
             if out_acc:
                 cl.test_accuracy(out_acc=out_acc)
@@ -8924,16 +10498,27 @@ def main():
         if out_img and not get_majority:
 
             # apply classification model to map image class labels
-            cl.predict(img, out_img, additional_layers=additional_layers, n_jobs=n_jobs, band_check=band_check,
-                       scale_data=scale_data, ignore_feas=ignore_feas, chunk_size=chunk_size, use_xy=use_xy)
+            cl.predict(
+                img,
+                out_img,
+                additional_layers=additional_layers,
+                n_jobs=n_jobs,
+                band_check=band_check,
+                scale_data=scale_data,
+                ignore_feas=ignore_feas,
+                chunk_size=chunk_size,
+                use_xy=use_xy,
+            )
 
         if out_img_rank:
 
             cl.sub_feas(img, out_img_rank)
 
-    logger.info('\nEnd data & time -- (%s)\nTotal processing time -- (%.2gs)\n' %
-                (time.asctime(time.localtime(time.time())), (time.time()-start_time)))
+    logger.info(
+        "\nEnd data & time -- (%s)\nTotal processing time -- (%.2gs)\n"
+        % (time.asctime(time.localtime(time.time())), (time.time() - start_time))
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
